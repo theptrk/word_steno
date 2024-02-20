@@ -15,6 +15,8 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(BASE_DIR / ".env"))
 
+print(READ_DOT_ENV_FILE)
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -82,10 +84,13 @@ THIRD_PARTY_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "tailwind",
+    "word_steno.theme",
 ]
 
 LOCAL_APPS = [
     "word_steno.users",
+    "word_steno.clips",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -286,3 +291,5 @@ SOCIALACCOUNT_FORMS = {"signup": "word_steno.users.forms.UserSocialSignupForm"}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+TAILWIND_APP_NAME = "word_steno.theme"
+NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
