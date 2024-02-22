@@ -1,0 +1,50 @@
+{% if results %}
+  <ol>
+    {% for paragraph in results %}
+      <li>
+        <h2>{{ paragraph.clip_title }}:</h2>
+        <iframe width="560"
+                height="315"
+                src="{{ paragraph.embed_url }}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+        <p>
+          <label style="font-weight: bold">Start: &nbsp;</label>
+          {{ paragraph.start }}
+          <label style="font-weight: bold">, End: &nbsp;</label>
+          {{ paragraph.end }}
+        </p>
+        <a href="{{ paragraph.clip_url }}">{{ paragraph.clip_url }}</a>
+        <p>
+          <label style="font-weight: bold">Speaker: &nbsp;</label>
+          {{ paragraph.speaker }}
+        </p>
+        <p>
+          <label style="font-weight: bold">Paragraph Transcription: &nbsp;</label>
+          {{ paragraph.full_transcription }}
+        </p>
+        <h2>Video Details</h2>
+        <p>
+          <label style="font-weight: bold">Channel: &nbsp;</label>
+          {{ paragraph.channel_title }} seconds
+        </p>
+        <p>
+          <label style="font-weight: bold">Video Length: &nbsp;</label>
+          {{ paragraph.video_length }} seconds
+        </p>
+        <p>
+          <label style="font-weight: bold">Summary: &nbsp;</label>
+          {{ paragraph.video_summary }}
+        </p>
+        <p>
+          <label style="font-weight: bold">Full Transcription:</label>
+          <br />
+          <span style="white-space: pre-line">{{ paragraph.video_transcription }}</span>
+        </p>
+      </li>
+    {% endfor %}
+  </ol>
+{% else %}
+  <p>No results found.</p>
+{% endif %}

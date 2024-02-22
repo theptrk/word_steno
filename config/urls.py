@@ -18,6 +18,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
     path("users/", include("word_steno.users.urls", namespace="users")),
+    path("clips/", include("word_steno.clips.urls", namespace="clips")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
     # ...
