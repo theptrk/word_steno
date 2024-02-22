@@ -10,7 +10,8 @@ def embed_transcriptions(queryset):
     for clip_paragraph in queryset:
         # using full_transcription directly:
         embedding = model.encode(
-            clip_paragraph.full_transcription, convert_to_tensor=False
+            clip_paragraph.full_transcription,
+            convert_to_tensor=False,
         )
         clip_paragraph.embedding = embedding
         clip_paragraph.save()
@@ -20,7 +21,7 @@ def search_embeddings(query, transcription, top_n=5):
     query_embedding = model.encode(query, convert_to_tensor=False)
 
     similarities = transcription.objects.order_by(
-        L2Distance("embedding", query_embedding)
+        L2Distance("embedding", query_embedding),
     )[:top_n]
     return similarities
 

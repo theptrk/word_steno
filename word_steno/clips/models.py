@@ -43,5 +43,7 @@ class ClipParagraph(models.Model):
     sentences = models.JSONField(blank=True, null=True)
     full_transcription = models.TextField(blank=True, null=True)
     embedding = VectorField(
-        dimensions=1024, blank=True, null=True
+        dimensions=1024,
+        blank=True,
+        null=True,
     )  # For storing the sentence embedding

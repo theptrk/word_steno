@@ -64,9 +64,8 @@ def extract_chapters(description):
     return chapters
 
 
-def download_audio(video_url):
-    yt = YouTube(video_url)
-
+## Create a function that will just get details
+def youtube_info(yt):
     # Get the length of the video in seconds
     video_length = yt.length
     if video_length > TWO_HOURS:
@@ -81,6 +80,17 @@ def download_audio(video_url):
     # Get the publish date of the video
     publish_date = yt.publish_date
 
+    return {
+        "video_title": video_title,
+        "video_length": video_length,
+        "channel_title": channel_title,
+        "video_description": video_description,
+        "publish_date": publish_date,
+    }
+
+
+def download_audio(yt):
+    video_title = yt.title
     # Replace problematic characters in the title to make it a valid filename
     # You might need to expand this list based on your requirements
     filename = "".join([c for c in video_title if c.isalpha() or c.isdigit()]).rstrip()
@@ -90,34 +100,24 @@ def download_audio(video_url):
     audio_stream.stream_to_buffer(buffer)
     buffer.seek(0)  # Rewind the buffer to the beginning
 
-    ### AWS UPLOAD Error uploading ###
-    print(os.environ.get("DJANGO_AWS_STORAGE_BUCKET_NAME"))
     object_name = upload_to_s3(
-        buffer, filename, os.environ.get("DJANGO_AWS_STORAGE_BUCKET_NAME")
+        buffer,
+        filename,
+        os.environ.get("DJANGO_AWS_STORAGE_BUCKET_NAME"),
     )
-    print(object_name)
-
-    # Define the download path
-    # download_folder = os.path.join(settings.BASE_DIR, 'downloaded_videos')
-    # if not os.path.exists(download_folder):
-    #     os.makedirs(download_folder)
-
-    # audio_stream.download(output_path=download_folder, filename=f"{filename}.mp3")
 
     return {
-        "video_title": video_title,
-        "video_length": video_length,
-        "channel_title": channel_title,
-        "publish_date": publish_date,
-        "video_description": video_description,
-        # "storage_path": os.path.join(settings.BASE_DIR, 'downloaded_videos', f"{filename}.mp3")
         "storage_path": f"https://{os.environ.get('DJANGO_AWS_STORAGE_BUCKET_NAME')}.s3.{os.environ.get('DJANGO_AWS_S3_REGION_NAME')}.amazonaws.com/{object_name}",
         "object_name": object_name,
     }
 
 
 def upload_to_s3(buffer, filename, bucket_name):
-    s3 = boto3.client("s3")
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=os.environ.get("DJANGO_AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("DJANGO_AWS_SECRET_ACCESS_KEY"),
+    )
     s3.upload_fileobj(buffer, bucket_name, f"clips/{filename}.mp3")
     return f"clips/{filename}.mp3"
 
@@ -126,20 +126,14 @@ def transcribe_audio(file_path):
     # Initialize the Deepgram SDK
     dg_client = DeepgramClient()
 
+    # Create a presigned url for the audio file in S3
     url = create_presigned_url(
-        os.environ.get("DJANGO_AWS_STORAGE_BUCKET_NAME"), file_path
+        os.environ.get("DJANGO_AWS_STORAGE_BUCKET_NAME"),
+        file_path,
     )
-    print(url)
+
     if url is not None:
         audio_data = {"url": url}
-
-    # Open the audio file in binary mode
-    # with open(file_path, 'rb') as audio_file:
-    #     audio_data = audio_file.read()
-
-    # payload: FileSource = {
-    #     "buffer": audio_data,
-    # }
 
     # Prepare the transcription request options
     options = PrerecordedOptions(
@@ -172,10 +166,12 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     :return: Presigned URL as string. If error, returns None.
     """
 
-    print(bucket_name, object_name)
-
     # Generate a presigned URL for the S3 object
-    s3_client = boto3.client("s3")
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.environ.get("DJANGO_AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("DJANGO_AWS_SECRET_ACCESS_KEY"),
+    )
     try:
         response = s3_client.generate_presigned_url(
             "get_object",
@@ -229,16 +225,3 @@ def extract_youtube_video_id(url):
             break
 
     return video_id
-
-
-def check_url_exists(existing_urls, new_url):
-    # Extract the video ID from the new URL
-    new_video_id = extract_youtube_video_id(new_url)
-
-    # Iterate through the list of existing URLs and extract their video IDs
-    for existing_url in existing_urls:
-        existing_video_id = extract_youtube_video_id(existing_url.url)
-        if new_video_id == existing_video_id:
-            return existing_url  # Found a matching video ID in the list
-
-    return None  # No matching video ID found in the list

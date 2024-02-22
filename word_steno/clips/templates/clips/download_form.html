@@ -1,31 +1,6 @@
-{% extends 'tailwind.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-  <!-- <h1 class="">Search Transcription of Videos</h1>
-<form action="{% url 'clips:index' %}" method="get">
-  {% csrf_token %}
-  <div class="relative">
-    <label for="query" class="sr-only"> Search </label>
-
-    <input type="text" id="query" name="query" required placeholder="Search..." class="w-full rounded-md border-gray-200 py-2.5 pe-10 shadow-sm sm:text-sm" />
-
-    <span class="absolute inset-y-0 end-0 grid w-10 place-content-center">
-      <button type="button" type="submit" class="text-gray-600 hover:text-gray-700">
-        <span class="sr-only">Search</span>
-
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-        </svg>
-      </button>
-    </span>
-  </div>
-
-  <label for="query">Search:</label><br />
-  <input type="text" id="query" name="query" required /><br />
-  <button type="submit" class="px-4 py-2 text-base font-medium text-center text-white transition duration-500 ease-in-out transform bg-blue-600 lg:px-10 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-    Submit
-  </button>
-</form> -->
   <form action="{% url 'clips:index' %}"
         method="post"
         class="max-w-[1200px] mx-auto">
@@ -37,7 +12,7 @@
              name="youtube_url"
              required
              placeholder="Paste YouTube URL..."
-             class="w-full rounded-md border-gray-200 py-2.5 pe-10 shadow-sm sm:text-sm" />
+             class="w-full rounded-md border-gray-200 p-2.5 pe-10 shadow-sm sm:text-sm" />
       <span class="absolute inset-y-0 end-0 grid w-10 place-content-center">
         <button type="submit" class="text-gray-600 hover:text-gray-700">
           <span class="sr-only">Download</span>
@@ -53,12 +28,9 @@
         </button>
       </span>
     </div>
-    <!-- <label for="youtube_url">YouTube URL:</label><br />
-  <input type="text" id="youtube_url" name="youtube_url" required /><br /> -->
     <button type="submit"
             class="px-4 py-2 text-base font-medium text-center text-white transition duration-500 ease-in-out transform bg-blue-600 lg:px-10 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
       Download Audio
     </button>
-    <!-- <input type="submit" value="Download Audio" /> -->
   </form>
 {% endblock %}

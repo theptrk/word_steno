@@ -1,8 +1,7 @@
-{% extends 'tailwind.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
   {% if clip %}
-    <script src="https://www.youtube.com/iframe_api"></script>
     {% load video_filters %}
 
     <div class="flex justify-between relative">
@@ -35,7 +34,7 @@
               <input type="text"
                      id="new_speaker"
                      name="new_speaker"
-                     class="mb-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm" />
+                     class="mb-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm p-2" />
               <button type="submit"
                       class="my-2 px-2 py-1 w-full text-base font-medium text-center text-white transition duration-500 ease-in-out transform bg-indigo-600 lg:px-10 rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 Update
@@ -70,7 +69,7 @@
                       {% csrf_token %}
                       <input type="text"
                              id="new_speaker"
-                             class="w-full rounded-md border-gray-200 py-2.5 pe-10 shadow-sm sm:text-sm"
+                             class="w-full rounded-md border-gray-200 p-2.5 pe-10 shadow-sm sm:text-sm"
                              name="new_speaker"
                              value="{{ paragraph.speaker }}" />
                       <input type="hidden"
@@ -134,20 +133,37 @@
       let player;
       let updater;
 
+      var ytScript = document.querySelector('#yt-iframe-api');
+      ytScript.addEventListener('load', function() {
+        initializePlayer();
+      });
+
+      window.onload = function() {
+        initializePlayer();
+      };
+
       function onYouTubeIframeAPIReady() {
-        player = new YT.Player("player", {
-          height: "207",
-          width: "368",
-          videoId: "{{clip.video_id}}",
-          playerVars: {
-            start: "{{start}}",
-            autoplay: 1, // This line is optional; it makes the video play automatically.
-            controls: 1, // This line is optional; it shows the playback controls.
-          },
-          events: {
-            onStateChange: onPlayerStateChange,
-          },
-        });
+        initializePlayer();
+      }
+
+      function initializePlayer() {
+        if (window.YT && YT.Player) {
+          player = new YT.Player("player", {
+            height: "207",
+            width: "368",
+            videoId: "{{clip.video_id}}",
+            playerVars: {
+              start: "{{start}}",
+              autoplay: 1, // This line is optional; it makes the video play automatically.
+              controls: 1, // This line is optional; it shows the playback controls.
+            },
+            events: {
+              onStateChange: onPlayerStateChange,
+            },
+          });
+        } else {
+          console.error("YT API not loaded yet.");
+        }
       }
 
       function onPlayerStateChange(event) {

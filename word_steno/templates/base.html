@@ -1,4 +1,5 @@
 {% load static i18n %}
+{% load static tailwind_tags %}
 
 <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
@@ -26,6 +27,7 @@
       <!-- This file stores project-specific CSS -->
       <link href="{% static 'css/project.css' %}" rel="stylesheet" />
     {% endblock css %}
+    {% tailwind_css %}
     <!-- Le javascript
     ================================================== -->
     {# Placed at the top of the document so pages load faster with defer #}
@@ -38,20 +40,36 @@
               referrerpolicy="no-referrer"></script>
       <!-- Your stuff: Third-party javascript libraries go here -->
       <!-- place project specific Javascript in this file -->
+      <script defer id="yt-iframe-api" src="https://www.youtube.com/iframe_api"></script>
       <script defer src="{% static 'js/project.js' %}"></script>
     {% endblock javascript %}
   </head>
   <body>
-    <div class="mb-1">
+    <header>
+      <div class="mx-auto max-w-screen-xl px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
+        <div class="sm:flex sm:items-center sm:justify-between">
+          <a href="{% url 'clips:index' %}" class="text-center sm:text-left">
+            <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">Vocalsteno</h1>
+          </a>
+          <div class="mt-4 flex flex-col gap-4 sm:mt-0 sm:flex-row sm:items-center">
+            <a href="{% url 'clips:channels' %}">
+              <button class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-5 py-3 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring"
+                      type="button">
+                <span class="text-sm font-medium">Channels</span>
+              </button>
+            </a>
+            <a href="{% url 'clips:download' %}">
+              <button class="block rounded-lg bg-indigo-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring"
+                      type="button">Download</button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+    {% comment %} <div class="mb-1">
       <nav class="navbar navbar-expand-md navbar-light bg-light">
         <div class="container-fluid">
-          <button class="navbar-toggler navbar-toggler-right"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#navbarSupportedContent"
-                  aria-controls="navbarSupportedContent"
-                  aria-expanded="false"
-                  aria-label="Toggle navigation">
+          <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <a class="navbar-brand" href="{% url 'home' %}">Word Steno</a>
@@ -87,7 +105,7 @@
           </div>
         </div>
       </nav>
-    </div>
+    </div> {% endcomment %}
     <div class="container">
       {% if messages %}
         {% for message in messages %}
