@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from pytube import YouTube
 
-from .embeddings import search_embeddings
+from .embeddings import search_embeddings, embed_transcriptions
 from .models import Clip
 from .models import ClipParagraph
 from .utils import download_audio
@@ -335,48 +335,67 @@ def paragraph(request, clip_id):
 
 def embedding_save(request):
     try:
-        for clip in Clip.objects.all():
-            print(extract_youtube_video_id(clip.url))
-            clip.video_id = extract_youtube_video_id(clip.url)
-            clip.save()
-
+        transcriptions = ClipParagraph.objects.all()
+        print(transcriptions)
+        embed_transcriptions(transcriptions)
         return HttpResponse("Embedding successfully.", status=200)
-
     except Exception as e:
         return HttpResponse(f"An error occurred in embedding: {e}", status=500)
-
-    # try:
-    #     transcriptions = ClipParagraph.objects.all()
-    #     print(transcriptions)
-    #     embed_transcriptions(transcriptions)
-    #     return HttpResponse("Embedding successfully.", status=200)
-    # except Exception as e:
-    #     return HttpResponse(f"An error occurred in embedding: {e}", status=500)
 
 
 def embedding(request):
     search_term = request.GET.get("query", "")
     if search_term:
         clip_paragraphs = search_embeddings(search_term, ClipParagraph)
-        results = [
-            {
-                "clip_paragraph_id": cp.id,
-                "clip_id": cp.clip.id,
-                "clip_url": f"{cp.clip.url}&t={int(cp.start-3)}",  # Example of including Clip detail
-                "clip_title": cp.clip.title,  # Example of including Clip detail
-                "sentences": cp.sentences,
-                "full_transcription": cp.full_transcription,
-                "start": cp.start,
-                "end": cp.end,
-                "speaker": cp.speaker,
-                "channel_title": cp.clip.channel_title,
-                "video_length": cp.clip.length,
-                "video_transcription": cp.clip.transcription,
-                "video_summary": cp.clip.summary,
-            }
-            for cp in clip_paragraphs
-        ]
+
+        grouped_results = {}
+        for cp in clip_paragraphs:
+            clip_id = cp.clip.id
+            if clip_id not in grouped_results:
+                grouped_results[clip_id] = {
+                    "clip_paragraph_id": cp.id,
+                    "clip_id": cp.clip.id,
+                    "clip_url": f"{cp.clip.url}&t={int(cp.start-3)}",  # Example of including Clip detail
+                    "clip_title": cp.clip.title,  # Example of including Clip detail
+                    "sentences": cp.sentences,
+                    "full_transcription": [],
+                    "start": math.floor(
+                        cp.start,
+                    ),  # Example of including Clip detail, cp.start,
+                    "end": math.ceil(cp.end),
+                    "speaker": cp.speaker,
+                    "channel_title": cp.clip.channel_title,
+                    "video_length": cp.clip.length,
+                    "video_transcription": cp.clip.full_transcription,
+                    "video_summary": cp.clip.summary,
+                    "video_id": cp.clip.video_id,
+                    "embed_url": f"https://www.youtube.com/embed/{extract_youtube_video_id(cp.clip.url)}?start={math.floor(cp.start)}&end={math.ceil(cp.end)}",
+                }
+            # Now append the full_transcription and any other necessary details
+            grouped_results[clip_id]["full_transcription"].append(
+                {
+                    "text": cp.full_transcription,
+                    "start": math.floor(cp.start),
+                    "end": math.ceil(cp.end),
+                },
+            )
+            # Repeat for other fields as necessary
+
+        # After appending all full_transcription entries to grouped_results
+        for clip_id, group in grouped_results.items():
+            # Sort the full_transcription list for each group by the 'start' value
+            group["full_transcription"] = sorted(
+                group["full_transcription"],
+                key=lambda x: x["start"],
+            )
+
+        # Convert grouped_results to a list format as per your requirement
+        results = [value for key, value in grouped_results.items()]
     else:
         results = ClipParagraph.objects.none()
         return render(request, "clips/embedding.html")
-    return render(request, "clips/results.html", {"results": results})
+    return render(
+        request,
+        "clips/embedding.html",
+        {"results": results, "search_term": search_term},
+    )

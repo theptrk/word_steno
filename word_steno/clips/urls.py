@@ -14,6 +14,6 @@ urlpatterns = [
     path("download", views.download, name="download"),
     # path("delete/<str:clip_id>/", views.delete, name="delete"),
     # path("paragraph/<str:clip_id>/", views.paragraph, name="paragraph"),
-    # path("embedding", views.embedding, name="embedding"),
-    # path("embedding_save", views.embedding_save, name="embedding_save")
+    path("embedding", views.embedding, name="embedding"),
+    path("embedding_save", views.embedding_save, name="embedding_save"),
 ]

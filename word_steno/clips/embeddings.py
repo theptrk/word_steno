@@ -1,12 +1,16 @@
-from pgvector.django import L2Distance
-from sentence_transformers import SentenceTransformer
+from pgvector.django import L2Distance, CosineDistance
+from sentence_transformers import SentenceTransformer, util
 
 # model = SentenceTransformer('all-MiniLM-L6-v2')
 model = SentenceTransformer("BAAI/bge-large-en-v1.5")
 
 
+def embed_transcription(full_transcription):
+    embedding = model.encode(full_transcription, convert_to_tensor=False)
+    return embedding
+
+
 def embed_transcriptions(queryset):
-    print(queryset)
     for clip_paragraph in queryset:
         # using full_transcription directly:
         embedding = model.encode(
@@ -16,12 +20,13 @@ def embed_transcriptions(queryset):
         clip_paragraph.save()
 
 
-def search_embeddings(query, transcription, top_n=5):
+def search_embeddings(query, transcription, top_n=10):
     query_embedding = model.encode(query, convert_to_tensor=False)
 
     similarities = transcription.objects.order_by(
-        L2Distance("embedding", query_embedding)
+        CosineDistance("embedding", query_embedding)
     )[:top_n]
+
     return similarities
 
 

@@ -1,9 +1,91 @@
-<h1>Search Transcription of Videos</h1>
-<form action="{% url 'clips:embedding' %}" method="get">
-  {% csrf_token %}
-  <label for="query">Search:</label>
-  <br />
-  <input type="text" id="query" name="query" required />
-  <br />
-  <input type="submit" value="Search" />
-</form>
+{% extends 'base.html' %}
+
+{% load video_filters %}
+
+{% block content %}
+  <form action="{% url 'clips:embedding' %}"
+        method="get"
+        class="max-w-[1200px] mx-auto">
+    {% csrf_token %}
+    <div class="relative my-4">
+      <label for="query" class="sr-only">Search</label>
+      <input type="text"
+             id="query"
+             name="query"
+             required
+             placeholder="Embedding Search"
+             class="w-full rounded-md border-gray-200 p-2.5 pe-10 shadow-sm sm:text-sm" />
+      <span class="absolute inset-y-0 end-0 grid w-10 place-content-center">
+        <button type="submit" class="text-gray-600 hover:text-gray-700">
+          <span class="sr-only">Search</span>
+          <svg type="submit"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke-width="1.5"
+               stroke="currentColor"
+               class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </button>
+      </span>
+    </div>
+  </form>
+  {% if search_term %}
+    <div class="my-2 max-w-[1200px] mx-auto">
+      <span>
+        <label class="font-bold mr-1">Search Term:</label>
+        {{ search_term }}
+      </span>
+    </div>
+    {% if results %}
+      {% for paragraph in results %}
+        <article class="rounded-xl my-4 bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8 max-w-[1200px] mx-auto">
+          <div class="flex items-start sm:gap-8">
+            <!-- <iframe width="384" height="216" src="{{paragraph.embed_url}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> -->
+            <img alt=""
+                 src="https://img.youtube.com/vi/{{ paragraph.video_id }}/0.jpg"
+                 class="h-56 w-full rounded-md object-cover" />
+            <div>
+              <h3 class="text-lg font-medium sm:text-xl">
+                <a href="{% url 'clips:clip' paragraph.clip_id %}"
+                   class="hover:underline">{{ paragraph.clip_title }}</a>
+              </h3>
+              <p class="mt-2 text-sm text-gray-700">
+                <label class="mr-1 font-bold">Summary:</label>
+                {{ paragraph.video_summary }}
+              </p>
+              {% for full_transcription in paragraph.full_transcription %}
+                <p class="mt-2 text-sm text-gray-700">
+                  <a href="{% url 'clips:clip_with_start' paragraph.clip_id full_transcription.start %}">
+                    <label class="mr-1 font-bold cursor-pointer hover:underline">
+                      Related paragraph on time
+                      {{ full_transcription.start|humanize_seconds }} to
+                      {{ full_transcription.end|humanize_seconds }}:
+                    </label>
+                  </a>
+                  {{ full_transcription.text }}
+                </p>
+              {% endfor %}
+              <div class="mt-4 sm:flex sm:items-center sm:gap-2">
+                <div class="flex items-center gap-1 text-gray-500">
+                  <svg class="h-4 w-4"
+                       fill="none"
+                       stroke="currentColor"
+                       viewBox="0 0 24 24"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                  </svg>
+                  <p class="text-xs font-medium">{{ paragraph.video_length|humanize_seconds }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <p class="max-w-[1200px] mx-auto">No results found. Please search again.</p>
+    {% endif %}
+  {% endif %}
+{% endblock %}

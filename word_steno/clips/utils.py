@@ -11,6 +11,7 @@ from deepgram import PrerecordedOptions
 from pytube import YouTube
 
 from .models import ClipParagraph
+from .embeddings import embed_transcription
 
 TWO_HOURS = 2 * 60 * 60
 
@@ -179,6 +180,7 @@ def extract_paragraphs(paragraphs_data, clip):
                 speaker=paragraph.get("speaker"),
                 sentences=paragraph.get("sentences"),
                 full_transcription=full_transcription,
+                embedding=embed_transcription(full_transcription),
             )
 
 
