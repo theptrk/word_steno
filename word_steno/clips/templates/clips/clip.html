@@ -133,37 +133,20 @@
       let player;
       let updater;
 
-      var ytScript = document.querySelector('#yt-iframe-api');
-      ytScript.addEventListener('load', function() {
-        initializePlayer();
-      });
-
-      window.onload = function() {
-        initializePlayer();
-      };
-
       function onYouTubeIframeAPIReady() {
-        initializePlayer();
-      }
-
-      function initializePlayer() {
-        if (window.YT && YT.Player) {
-          player = new YT.Player("player", {
-            height: "207",
-            width: "368",
-            videoId: "{{clip.video_id}}",
-            playerVars: {
-              start: "{{start}}",
-              autoplay: 1, // This line is optional; it makes the video play automatically.
-              controls: 1, // This line is optional; it shows the playback controls.
-            },
-            events: {
-              onStateChange: onPlayerStateChange,
-            },
-          });
-        } else {
-          console.error("YT API not loaded yet.");
-        }
+        player = new YT.Player("player", {
+          height: "207",
+          width: "368",
+          videoId: "{{clip.video_id}}",
+          playerVars: {
+            start: "{{start}}",
+            autoplay: 1, // This line is optional; it makes the video play automatically.
+            controls: 1, // This line is optional; it shows the playback controls.
+          },
+          events: {
+            onStateChange: onPlayerStateChange,
+          },
+        });
       }
 
       function onPlayerStateChange(event) {

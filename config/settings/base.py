@@ -85,7 +85,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "tailwind",
-    "theme",
+    "word_steno.theme",
 ]
 
 LOCAL_APPS = [

@@ -64,31 +64,6 @@ def extract_chapters(description):
     return chapters
 
 
-## Create a function that will just get details
-def youtube_info(yt):
-    # Get the length of the video in seconds
-    video_length = yt.length
-    if video_length > TWO_HOURS:
-        return None
-
-    # Get the title of the video
-    video_title = yt.title
-    # Get the channel title
-    channel_title = yt.author
-    # Get the video description
-    video_description = yt.description
-    # Get the publish date of the video
-    publish_date = yt.publish_date
-
-    return {
-        "video_title": video_title,
-        "video_length": video_length,
-        "channel_title": channel_title,
-        "video_description": video_description,
-        "publish_date": publish_date,
-    }
-
-
 def download_audio(yt):
     video_title = yt.title
     # Replace problematic characters in the title to make it a valid filename

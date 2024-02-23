@@ -53,9 +53,9 @@ def index(request):
                 video_id=video_id,
                 defaults={
                     "url": video_url,
-                    "title": yt.video_title,
-                    "length": yt.video_length,
-                    "channel_title": yt.channel_title,
+                    "title": yt.title,
+                    "length": yt.length,
+                    "channel_title": yt.author,
                     "description": get_description(video_url),
                     "published_at": yt.publish_date,
                 },
