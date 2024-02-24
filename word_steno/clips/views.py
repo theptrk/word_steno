@@ -2,9 +2,6 @@ import json
 import math
 
 from django.contrib.postgres.search import SearchQuery
-from django.contrib.postgres.search import SearchRank
-from django.contrib.postgres.search import SearchVector
-from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -92,21 +89,7 @@ def index(request):
             search_query = SearchQuery(search_term, config="english")
 
             # Annotate each ClipParagraph with a search vector and rank based on the 'text' key of the sentences JSONB field
-            clip_paragraphs = (
-                ClipParagraph.objects.annotate(
-                    search_vector=SearchVector(
-                        "full_transcription",
-                        config="english",
-                        weight="A",
-                    ),
-                )
-                .annotate(
-                    rank=SearchRank(F("search_vector"), search_query),
-                )
-                .filter(search_vector=search_query)
-                .order_by("-rank")
-                .select_related("clip")
-            )
+            clip_paragraphs = ClipParagraph.search_by_transcription(search_query)
 
             grouped_results = {}
             for cp in clip_paragraphs:
@@ -298,7 +281,7 @@ def paragraph(request, clip_id):
                 sentences = paragraph.get("sentences")
                 if sentences:
                     for sentence in sentences:
-                        print(sentence.get("text"), sentence)
+                        # print(sentence.get("text"), sentence)
                         full_transcription += sentence.get("text") + " "
 
                 ClipParagraph.objects.create(
@@ -317,7 +300,7 @@ def paragraph(request, clip_id):
 def embedding_save(request):
     try:
         for clip in Clip.objects.all():
-            print(extract_youtube_video_id(clip.url))
+            # print(extract_youtube_video_id(clip.url))
             clip.video_id = extract_youtube_video_id(clip.url)
             clip.save()
 

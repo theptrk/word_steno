@@ -3,6 +3,10 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from pgvector.django import VectorField
 
+from django.contrib.postgres.search import SearchRank
+from django.db.models import F
+from django.contrib.postgres.search import SearchVector
+
 
 # Create your models here.
 class Clip(models.Model):
@@ -45,3 +49,20 @@ class ClipParagraph(models.Model):
     embedding = VectorField(
         dimensions=1024, blank=True, null=True
     )  # For storing the sentence embedding
+
+    def search_by_transcription(self, query):
+        return (
+            ClipParagraph.objects.annotate(
+                search_vector=SearchVector(
+                    "full_transcription",
+                    config="english",
+                    weight="A",
+                ),
+            )
+            .annotate(
+                rank=SearchRank(F("search_vector"), query),
+            )
+            .filter(search_vector=query)
+            .order_by("-rank")
+            .select_related("clip")
+        )
