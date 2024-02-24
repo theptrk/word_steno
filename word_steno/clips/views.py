@@ -9,17 +9,20 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
+from pytube import YouTube
 
 from .embeddings import search_embeddings
 from .models import Clip
 from .models import ClipParagraph
-from .utils import check_url_exists
 from .utils import download_audio
 from .utils import extract_chapters
 from .utils import extract_paragraphs
 from .utils import extract_youtube_video_id
 from .utils import get_description
 from .utils import transcribe_audio
+
+# Static
+TWO_HOURS = 2 * 60 * 60
 
 
 # Create your views here.
@@ -32,55 +35,68 @@ def index(request):
             if not video_url:
                 return HttpResponse("No URL provided", status=400)
 
-            # Check if there's an existing youtube URL
-            clips = Clip.objects.all()
-            if clips:
-                matching_url = check_url_exists(clips, video_url)
-                if matching_url:
-                    return redirect(reverse("clips:clip", args=[matching_url.id]))
+            print("Start")
 
-            # Get Video Details & Download file
-            video_details = download_audio(video_url)
-
-            if not video_details:
+            # Initialize video url
+            yt = YouTube(video_url)
+            if yt.length > TWO_HOURS:
                 return HttpResponse(
                     "Youtube Video is greater than 2 hours. Please use a shorter video.",
                     status=400,
                 )
+            print("checked length")
 
-            # Transcribe downloaded audio file
+            # Check if the Clip with this video_id already exists
+            video_id = extract_youtube_video_id(video_url)
+            print("Extract Video ID", video_id)
+            clip, created = Clip.objects.get_or_create(
+                video_id=video_id,
+                defaults={
+                    "url": video_url,
+                    "title": yt.title,
+                    "length": yt.length,
+                    "channel_title": yt.author,
+                    "description": get_description(video_url),
+                    "published_at": yt.publish_date,
+                },
+            )
+
+            if not created:
+                print("Redirect clip to", clip.id)
+                return redirect(reverse("clips:clip", args=[clip.id]))
+
+            print("Save Database ", clip.id)
+
+            # Download & Upload Audio to S3
+            video_details = download_audio(yt)
+            print("Video Detail", video_details)
+
+            # Transcribe audio file from S3
             transcribed_audio = transcribe_audio(video_details["object_name"])
+
             # modify transcribed data to json format
             data = transcribed_audio.to_json()
             data = json.loads(data)
-            paragraphs_data = data["results"]["channels"][0]["alternatives"][0][
-                "paragraphs"
-            ]["paragraphs"]
-            # Save transcribed data to clip model
-            clip = Clip(
-                url=video_url,
-                video_id=extract_youtube_video_id(video_url),
-                storage_path=video_details["storage_path"],
-                title=video_details["video_title"],
-                length=video_details["video_length"],
-                channel_title=video_details["channel_title"],
-                description=video_details["video_description"],
-                published_at=video_details["publish_date"],
-                full_transcription=data["results"]["channels"][0]["alternatives"][0][
-                    "paragraphs"
-                ]["transcript"],
-                summary=data["results"]["summary"]["short"],
-                paragraphs=paragraphs_data,
-                words=data["results"]["channels"][0]["alternatives"][0]["words"],
-            )
-            clip.save()
+            print("Transcibed Audio", data)
+            deepgram_object = data["results"]["channels"][0]["alternatives"][0]
+            paragraphs_data = deepgram_object["paragraphs"]["paragraphs"]
 
+            # Save transcribed data to clip model
+            clip.storage_path = video_details["storage_path"]
+            clip.full_transcription = deepgram_object["paragraphs"]["transcript"]
+            clip.summary = data["results"]["summary"]["short"]
+            clip.paragraphs = paragraphs_data
+            clip.words = deepgram_object["words"]
+
+            clip.save()
+            print("Database Update")
+
+            # Save Paragraphs in ClipParagraph model
             extract_paragraphs(paragraphs_data, clip)
+            print("Paragraphs Update")
 
             # Redirect to results page
             return redirect(reverse("clips:clip", args=[clip.id]))
-
-            return HttpResponse("Audio download complete!")
         except Exception as e:
             return HttpResponse(f"An error occurred: {e}", status=500)
 
@@ -96,7 +112,9 @@ def index(request):
                 ClipParagraph.objects.annotate(
                     # search_vector=SearchVector(RawSQL("jsonb_path_query_array(sentences, '$[*].text')::text", []), config='english')
                     search_vector=SearchVector(
-                        "full_transcription", config="english", weight="A"
+                        "full_transcription",
+                        config="english",
+                        weight="A",
                     ),
                 )
                 .annotate(
@@ -120,7 +138,7 @@ def index(request):
                         "full_transcription": [],
                         "rank": cp.rank,
                         "start": math.floor(
-                            cp.start
+                            cp.start,
                         ),  # Example of including Clip detail, cp.start,
                         "end": math.ceil(cp.end),
                         "speaker": cp.speaker,
@@ -137,7 +155,7 @@ def index(request):
                         "text": cp.full_transcription,
                         "start": math.floor(cp.start),
                         "end": math.ceil(cp.end),
-                    }
+                    },
                 )
                 # Repeat for other fields as necessary
 
@@ -172,11 +190,12 @@ def clip(request, clip_id, start=0):
             # Update ClipParagraph instances
             if updated_speaker is not None:
                 ClipParagraph.objects.filter(
-                    clip_id=clip_id, speaker=old_speaker
+                    clip_id=clip_id,
+                    speaker=old_speaker,
                 ).update(speaker=updated_speaker)
                 # print(ClipParagraph.objects.filter(clip_id=clip_id, speaker=old_speaker).first())
                 return redirect(
-                    reverse("clips:clip", args=[clip_id])
+                    reverse("clips:clip", args=[clip_id]),
                 )  # Redirect to a new URL to prevent form resubmission
 
         # fetch clip data
@@ -229,10 +248,10 @@ def update_speaker(request, clip_id):
         # Update ClipParagraph instances
         if updated_speaker is not None:
             ClipParagraph.objects.filter(clip_id=clip_id, id=paragraph_id).update(
-                speaker=updated_speaker
+                speaker=updated_speaker,
             )
             return redirect(
-                reverse("clips:clip", args=[clip_id])
+                reverse("clips:clip", args=[clip_id]),
             )  # Redirect to a new URL to prevent form resubmission
 
 
@@ -247,7 +266,7 @@ def channels(request):
         if selected_channel:
             # Fetch clips for the selected channel
             clips = Clip.objects.filter(channel_title=selected_channel).order_by(
-                "-published_at"
+                "-published_at",
             )
 
         return render(

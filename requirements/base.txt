@@ -15,7 +15,6 @@ crispy-bootstrap5==2023.10  # https://github.com/django-crispy-forms/crispy-boot
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
 
 django-tailwind==3.8.0 # https://github.com/timonweb/django-tailwind
-
 pgvector==0.2.5 # https://github.com/pgvector/pgvector-python
 sentence-transformers==2.3.1 # https://github.com/UKPLab/sentence-transformers
 deepgram-sdk==3.1.4 # https://github.com/deepgram/deepgram-python-sdk
