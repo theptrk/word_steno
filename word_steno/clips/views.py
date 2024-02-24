@@ -94,9 +94,10 @@ def index(request):
             # Annotate each ClipParagraph with a search vector and rank based on the 'text' key of the sentences JSONB field
             clip_paragraphs = (
                 ClipParagraph.objects.annotate(
-                    # search_vector=SearchVector(RawSQL("jsonb_path_query_array(sentences, '$[*].text')::text", []), config='english')
                     search_vector=SearchVector(
-                        "full_transcription", config="english", weight="A"
+                        "full_transcription",
+                        config="english",
+                        weight="A",
                     ),
                 )
                 .annotate(
@@ -120,7 +121,7 @@ def index(request):
                         "full_transcription": [],
                         "rank": cp.rank,
                         "start": math.floor(
-                            cp.start
+                            cp.start,
                         ),  # Example of including Clip detail, cp.start,
                         "end": math.ceil(cp.end),
                         "speaker": cp.speaker,
@@ -137,7 +138,7 @@ def index(request):
                         "text": cp.full_transcription,
                         "start": math.floor(cp.start),
                         "end": math.ceil(cp.end),
-                    }
+                    },
                 )
                 # Repeat for other fields as necessary
 
@@ -172,11 +173,11 @@ def clip(request, clip_id, start=0):
             # Update ClipParagraph instances
             if updated_speaker is not None:
                 ClipParagraph.objects.filter(
-                    clip_id=clip_id, speaker=old_speaker
+                    clip_id=clip_id,
+                    speaker=old_speaker,
                 ).update(speaker=updated_speaker)
-                # print(ClipParagraph.objects.filter(clip_id=clip_id, speaker=old_speaker).first())
                 return redirect(
-                    reverse("clips:clip", args=[clip_id])
+                    reverse("clips:clip", args=[clip_id]),
                 )  # Redirect to a new URL to prevent form resubmission
 
         # fetch clip data
@@ -229,10 +230,10 @@ def update_speaker(request, clip_id):
         # Update ClipParagraph instances
         if updated_speaker is not None:
             ClipParagraph.objects.filter(clip_id=clip_id, id=paragraph_id).update(
-                speaker=updated_speaker
+                speaker=updated_speaker,
             )
             return redirect(
-                reverse("clips:clip", args=[clip_id])
+                reverse("clips:clip", args=[clip_id]),
             )  # Redirect to a new URL to prevent form resubmission
 
 
@@ -247,7 +248,7 @@ def channels(request):
         if selected_channel:
             # Fetch clips for the selected channel
             clips = Clip.objects.filter(channel_title=selected_channel).order_by(
-                "-published_at"
+                "-published_at",
             )
 
         return render(
@@ -291,7 +292,6 @@ def paragraph(request, clip_id):
         paragraphs_data = clip.paragraphs
 
         if paragraphs_data:
-            # ClipParagraph.objects.filter(clip=clip).delete()  # Remove existing paragraphs to prevent duplicates
             for paragraph in paragraphs_data:
                 # Create Full Transcription for the paragraph
                 full_transcription = ""
@@ -325,14 +325,6 @@ def embedding_save(request):
 
     except Exception as e:
         return HttpResponse(f"An error occurred in embedding: {e}", status=500)
-
-    # try:
-    #     transcriptions = ClipParagraph.objects.all()
-    #     print(transcriptions)
-    #     embed_transcriptions(transcriptions)
-    #     return HttpResponse("Embedding successfully.", status=200)
-    # except Exception as e:
-    #     return HttpResponse(f"An error occurred in embedding: {e}", status=500)
 
 
 def embedding(request):
