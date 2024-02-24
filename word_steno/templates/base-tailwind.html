@@ -1,0 +1,64 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>
+      {% block title %}
+        Word Steno
+      {% endblock title %}
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Behold My Awesome Project!" />
+    <meta name="author" content="Patrick Tran" />
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+    {% block css %}
+      <!-- Latest compiled and minified Bootstrap CSS -->
+      {% comment %} <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" /> {% endcomment %}
+      <!-- Include the Tailwind JS file -->
+      <script src="https://cdn.tailwindcss.com"></script>
+      <!-- Your stuff: Third-party CSS libraries go here -->
+      <!-- This file stores project-specific CSS -->
+      <link href="{% static 'css/project.css' %}" rel="stylesheet" />
+    {% endblock css %}
+    <!-- Le javascript
+    ================================================== -->
+    {# Placed at the top of the document so pages load faster with defer #}
+    {% block javascript %}
+      <!-- Bootstrap JS -->
+      {% comment %} <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js" integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> {% endcomment %}
+      <!-- Your stuff: Third-party javascript libraries go here -->
+      <!-- place project specific Javascript in this file -->
+      <script defer src="{% static 'js/project.js' %}"></script>
+    {% endblock javascript %}
+  </head>
+  <header>
+    <div class="mx-auto max-w-screen-xl px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
+      <div class="sm:flex sm:items-center sm:justify-between">
+        <a href="{% url 'home' %}" class="text-center sm:text-left">
+          <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">Word Steno 🗣️ 🧑‍💻</h1>
+        </a>
+        <div class="mt-4 flex flex-col gap-4 sm:mt-0 sm:flex-row sm:items-center">
+          <a href="{% url 'clips:channels' %}">
+            <button class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-5 py-3 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring"
+                    type="button">
+              <span class="text-sm font-medium">Channels</span>
+            </button>
+          </a>
+          <a href="{% url 'clips:download' %}">
+            <button class="block rounded-lg bg-indigo-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring"
+                    type="button">Download</button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+  <body class="bg-gray-50 leading-normal tracking-normal">
+    <div class="container mx-auto">
+      {% block content %}<!-- Page content goes here -->{% endblock %}
+    </div>
+  </body>
+</html>
