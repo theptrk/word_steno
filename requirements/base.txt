@@ -19,3 +19,4 @@ django-tailwind==3.8.0 # https://github.com/timonweb/django-tailwind
 pgvector==0.2.5 # https://github.com/pgvector/pgvector-python
 sentence-transformers==2.3.1 # https://github.com/UKPLab/sentence-transformers
 deepgram-sdk==3.1.4 # https://github.com/deepgram/deepgram-python-sdk
+pytube==15.0.0 # https://github.com/pytube/pytube
