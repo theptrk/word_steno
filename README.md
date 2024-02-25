@@ -73,6 +73,7 @@ python manage.py runserver
 To start Django Tailwind in development mode, run the following command in a terminal:
 
 ```
+python manage.py tailwind install
 python manage.py tailwind start
 ```
 

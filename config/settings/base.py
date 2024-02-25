@@ -15,8 +15,6 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(BASE_DIR / ".env"))
 
-print(READ_DOT_ENV_FILE)
-
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -292,4 +290,8 @@ SOCIALACCOUNT_FORMS = {"signup": "word_steno.users.forms.UserSocialSignupForm"}
 # Your stuff...
 # ------------------------------------------------------------------------------
 TAILWIND_APP_NAME = "word_steno.theme"
-NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+
+AWS_STORAGE_BUCKET_NAME = env("DJANGO_AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = env("DJANGO_AWS_S3_REGION_NAME")
+AWS_ACCESS_KEY_ID = env("DJANGO_AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("DJANGO_AWS_SECRET_ACCESS_KEY")
