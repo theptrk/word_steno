@@ -59,3 +59,8 @@ INSTALLED_APPS += ["django_extensions"]
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+NPM_BIN_PATH = env(
+    "NPM_BIN_PATH",
+    default="/usr/local/bin/npm",
+)

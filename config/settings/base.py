@@ -1,9 +1,11 @@
 # ruff: noqa: ERA001, E501
 """Base settings to build other settings files upon."""
 
+import os
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # word_steno/
@@ -14,8 +16,6 @@ READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(BASE_DIR / ".env"))
-
-print(READ_DOT_ENV_FILE)
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -292,4 +292,22 @@ SOCIALACCOUNT_FORMS = {"signup": "word_steno.users.forms.UserSocialSignupForm"}
 # Your stuff...
 # ------------------------------------------------------------------------------
 TAILWIND_APP_NAME = "word_steno.theme"
-NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+
+
+def get_required_env(var_name):
+    """
+    Try to get an environment variable. Raise an exception if it's not found.
+    Note: these do not have a usable default parameter.
+    """
+    try:
+        return os.environ[var_name]
+    except KeyError as err:  # Catch the KeyError exception as 'err'
+        error_msg = f"Required environment variable '{var_name}' is missing."
+        # Raise from 'err' to keep the original cause
+        raise ImproperlyConfigured(error_msg) from err
+
+
+AWS_STORAGE_BUCKET_NAME = get_required_env("DJANGO_AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = get_required_env("DJANGO_AWS_S3_REGION_NAME")
+AWS_ACCESS_KEY_ID = get_required_env("DJANGO_AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = get_required_env("DJANGO_AWS_SECRET_ACCESS_KEY")
