@@ -124,10 +124,10 @@ STATIC_ROOT = env("DJANGO_STATIC_ROOT")
 #     default="[Word Steno] ",
 # )
 #
-# # ADMIN
-# # ------------------------------------------------------------------------------
-# # Django Admin URL regex.
-# ADMIN_URL = env("DJANGO_ADMIN_URL")
+# ADMIN
+# ------------------------------------------------------------------------------
+# Django Admin URL regex.
+ADMIN_URL = env("DJANGO_ADMIN_URL")
 #
 # # Anymail
 # # ------------------------------------------------------------------------------
