@@ -35,10 +35,10 @@ def index(request):
     # Define the search query
     search_query = SearchQuery(search_term, config="english")
 
-    # Annotate each ClipParagraph with a search vector and rank based on the 'text' key of the sentences JSONB field
+    # Annotate each ClipParagraph with a search vector and rank based on the 'text'
+    # key of the sentences JSONB field
     clip_paragraphs = (
         ClipParagraph.objects.annotate(
-            # search_vector=SearchVector(RawSQL("jsonb_path_query_array(sentences, '$[*].text')::text", []), config='english')
             search_vector=SearchVector(
                 "full_transcription",
                 config="english",
@@ -60,14 +60,14 @@ def index(request):
             grouped_results[clip_id] = {
                 "clip_paragraph_id": cp.id,
                 "clip_id": cp.clip.id,
-                "clip_url": f"{cp.clip.url}&t={int(cp.start-3)}",  # Example of including Clip detail
-                "clip_title": cp.clip.title,  # Example of including Clip detail
+                "clip_url": f"{cp.clip.url}&t={int(cp.start-3)}",
+                "clip_title": cp.clip.title,
                 "sentences": cp.sentences,
                 "full_transcription": [],
                 "rank": cp.rank,
                 "start": math.floor(
                     cp.start,
-                ),  # Example of including Clip detail, cp.start,
+                ),
                 "end": math.ceil(cp.end),
                 "speaker": cp.speaker,
                 "channel_title": cp.clip.channel_title,
@@ -75,7 +75,11 @@ def index(request):
                 "video_transcription": cp.clip.full_transcription,
                 "video_summary": cp.clip.summary,
                 "video_id": cp.clip.video_id,
-                "embed_url": f"https://www.youtube.com/embed/{extract_youtube_video_id(cp.clip.url)}?start={math.floor(cp.start)}&end={math.ceil(cp.end)}",
+                "embed_url": (
+                    f"https://www.youtube.com/embed/{extract_youtube_video_id(cp.clip.url)}"
+                    f"?start={math.floor(cp.start)}"
+                    f"&end={math.ceil(cp.end)}"
+                ),
             }
         # Now append the full_transcription and any other necessary details
         grouped_results[clip_id]["full_transcription"].append(
@@ -88,7 +92,7 @@ def index(request):
         # Repeat for other fields as necessary
 
     # After appending all full_transcription entries to grouped_results
-    for clip_id, group in grouped_results.items():
+    for group in grouped_results.values():
         # Sort the full_transcription list for each group by the 'start' value
         group["full_transcription"] = sorted(
             group["full_transcription"],
@@ -118,10 +122,9 @@ def clip(request, clip_id, start=0):
                     clip_id=clip_id,
                     speaker=old_speaker,
                 ).update(speaker=updated_speaker)
-                # print(ClipParagraph.objects.filter(clip_id=clip_id, speaker=old_speaker).first())
                 return redirect(
                     reverse("clips:clip", args=[clip_id]),
-                )  # Redirect to a new URL to prevent form resubmission
+                )
 
         # fetch clip data
         clip = Clip.objects.get(id=clip_id)
@@ -165,19 +168,21 @@ def clip(request, clip_id, start=0):
 
 
 def update_speaker(request, clip_id):
-    if request.method == "POST":
-        # Extract the updated speaker information from the POST data
-        paragraph_id = request.POST.get("paragraph_id")
-        updated_speaker = request.POST.get("new_speaker")
+    # Extract the updated speaker information from the POST data
+    paragraph_id = request.POST.get("paragraph_id")
+    updated_speaker = request.POST.get("new_speaker")
 
-        # Update ClipParagraph instances
-        if updated_speaker is not None:
-            ClipParagraph.objects.filter(clip_id=clip_id, id=paragraph_id).update(
-                speaker=updated_speaker,
-            )
-            return redirect(
-                reverse("clips:clip", args=[clip_id]),
-            )  # Redirect to a new URL to prevent form resubmission
+    # Update ClipParagraph instances
+    if updated_speaker is not None:
+        ClipParagraph.objects.filter(clip_id=clip_id, id=paragraph_id).update(
+            speaker=updated_speaker,
+        )
+        # Redirect to a new URL to prevent form resubmission
+        return redirect(
+            reverse("clips:clip", args=[clip_id]),
+        )
+
+    return HttpResponse("No speaker name provided.", status=400)
 
 
 def channels(request):
@@ -217,20 +222,19 @@ def download(request):
             if not video_url:
                 return HttpResponse("No URL provided", status=400)
 
-            print("Start")
-
             # Initialize video url
             yt = YouTube(video_url)
             if yt.length > TWO_HOURS:
                 return HttpResponse(
-                    "Youtube Video is greater than 2 hours. Please use a shorter video.",
+                    (
+                        "Youtube Video is greater than 2 hours. "
+                        "Please use a shorter video."
+                    ),
                     status=400,
                 )
-            print("checked length")
 
             # Check if the Clip with this video_id already exists
             video_id = extract_youtube_video_id(video_url)
-            print("Extract Video ID", video_id)
             clip, created = Clip.objects.get_or_create(
                 video_id=video_id,
                 defaults={
@@ -244,14 +248,10 @@ def download(request):
             )
 
             if not created:
-                print("Redirect clip to", clip.id)
                 return redirect(reverse("clips:clip", args=[clip.id]))
-
-            print("Save Database ", clip.id)
 
             # Download & Upload Audio to S3
             video_details = download_audio(yt)
-            print("Video Detail", video_details)
 
             # Transcribe audio file from S3
             transcribed_audio = transcribe_audio(video_details["object_name"])
@@ -259,7 +259,6 @@ def download(request):
             # modify transcribed data to json format
             data = transcribed_audio.to_json()
             data = json.loads(data)
-            print("Transcibed Audio", data)
             deepgram_object = data["results"]["channels"][0]["alternatives"][0]
             paragraphs_data = deepgram_object["paragraphs"]["paragraphs"]
 
@@ -271,15 +270,13 @@ def download(request):
             clip.words = deepgram_object["words"]
 
             clip.save()
-            print("Database Update")
 
             # Save Paragraphs in ClipParagraph model
             extract_paragraphs(paragraphs_data, clip)
-            print("Paragraphs Update")
 
             # Redirect to results page
             return redirect(reverse("clips:clip", args=[clip.id]))
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             return HttpResponse(f"An error occurred: {e}", status=500)
     else:
         return render(request, "clips/download_form.html")
@@ -304,14 +301,12 @@ def paragraph(request, clip_id):
         paragraphs_data = clip.paragraphs
 
         if paragraphs_data:
-            # ClipParagraph.objects.filter(clip=clip).delete()  # Remove existing paragraphs to prevent duplicates
             for paragraph in paragraphs_data:
                 # Create Full Transcription for the paragraph
                 full_transcription = ""
                 sentences = paragraph.get("sentences")
                 if sentences:
                     for sentence in sentences:
-                        print(sentence.get("text"), sentence)
                         full_transcription += sentence.get("text") + " "
 
                 ClipParagraph.objects.create(
@@ -330,22 +325,13 @@ def paragraph(request, clip_id):
 def embedding_save(request):
     try:
         for clip in Clip.objects.all():
-            print(extract_youtube_video_id(clip.url))
             clip.video_id = extract_youtube_video_id(clip.url)
             clip.save()
 
         return HttpResponse("Embedding successfully.", status=200)
 
-    except Exception as e:
+    except Exception as e:  # noqa: E722
         return HttpResponse(f"An error occurred in embedding: {e}", status=500)
-
-    # try:
-    #     transcriptions = ClipParagraph.objects.all()
-    #     print(transcriptions)
-    #     embed_transcriptions(transcriptions)
-    #     return HttpResponse("Embedding successfully.", status=200)
-    # except Exception as e:
-    #     return HttpResponse(f"An error occurred in embedding: {e}", status=500)
 
 
 def embedding(request):
@@ -356,8 +342,8 @@ def embedding(request):
             {
                 "clip_paragraph_id": cp.id,
                 "clip_id": cp.clip.id,
-                "clip_url": f"{cp.clip.url}&t={int(cp.start-3)}",  # Example of including Clip detail
-                "clip_title": cp.clip.title,  # Example of including Clip detail
+                "clip_url": f"{cp.clip.url}&t={int(cp.start-3)}",
+                "clip_title": cp.clip.title,
                 "sentences": cp.sentences,
                 "full_transcription": cp.full_transcription,
                 "start": cp.start,
