@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <form action="{% url 'clips:index' %}"
+  <form action="{% url 'clips:download' %}"
         method="post"
         class="max-w-[1200px] mx-auto">
     {% csrf_token %}
