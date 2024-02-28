@@ -1,4 +1,5 @@
 import json
+import logging
 import math
 
 from django.contrib.auth.decorators import user_passes_test
@@ -24,6 +25,8 @@ from .utils import transcribe_audio
 
 # Static
 TWO_HOURS = 2 * 60 * 60
+
+logger = logging.getLogger(__name__)
 
 
 # Create your views here.
@@ -276,7 +279,10 @@ def download(request):
 
             # Redirect to results page
             return redirect(reverse("clips:clip", args=[clip.id]))
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
+            logging.exception(
+                "Exception: download POST: downloading, transcribing and saving the clip.",
+            )
             return HttpResponse(f"An error occurred: {e}", status=500)
     else:
         return render(request, "clips/download_form.html")
@@ -330,7 +336,8 @@ def embedding_save(request):
 
         return HttpResponse("Embedding successfully.", status=200)
 
-    except Exception as e:  # noqa: E722
+    except Exception as e:
+        logging.exception("Exception: embedding_save.")
         return HttpResponse(f"An error occurred in embedding: {e}", status=500)
 
 
