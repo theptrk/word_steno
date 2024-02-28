@@ -1,6 +1,7 @@
 import json
 import math
 
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.postgres.search import SearchQuery
 from django.contrib.postgres.search import SearchRank
 from django.contrib.postgres.search import SearchVector
@@ -283,12 +284,81 @@ def channels(request):
         return HttpResponse("Channels do not exist.", status=500)
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def download(request):
-    try:
-        return render(request, "clips/download_form.html")
+    if request.method == "POST":
+        try:
+            video_url = request.POST.get("youtube_url")
 
-    except Clip.DoesNotExist:
-        return HttpResponse("Channels do not exist.", status=500)
+            if not video_url:
+                return HttpResponse("No URL provided", status=400)
+
+            print("Start")
+
+            # Initialize video url
+            yt = YouTube(video_url)
+            if yt.length > TWO_HOURS:
+                return HttpResponse(
+                    "Youtube Video is greater than 2 hours. Please use a shorter video.",
+                    status=400,
+                )
+            print("checked length")
+
+            # Check if the Clip with this video_id already exists
+            video_id = extract_youtube_video_id(video_url)
+            print("Extract Video ID", video_id)
+            clip, created = Clip.objects.get_or_create(
+                video_id=video_id,
+                defaults={
+                    "url": video_url,
+                    "title": yt.title,
+                    "length": yt.length,
+                    "channel_title": yt.author,
+                    "description": get_description(video_url),
+                    "published_at": yt.publish_date,
+                },
+            )
+
+            if not created:
+                print("Redirect clip to", clip.id)
+                return redirect(reverse("clips:clip", args=[clip.id]))
+
+            print("Save Database ", clip.id)
+
+            # Download & Upload Audio to S3
+            video_details = download_audio(yt)
+            print("Video Detail", video_details)
+
+            # Transcribe audio file from S3
+            transcribed_audio = transcribe_audio(video_details["object_name"])
+
+            # modify transcribed data to json format
+            data = transcribed_audio.to_json()
+            data = json.loads(data)
+            print("Transcibed Audio", data)
+            deepgram_object = data["results"]["channels"][0]["alternatives"][0]
+            paragraphs_data = deepgram_object["paragraphs"]["paragraphs"]
+
+            # Save transcribed data to clip model
+            clip.storage_path = video_details["storage_path"]
+            clip.full_transcription = deepgram_object["paragraphs"]["transcript"]
+            clip.summary = data["results"]["summary"]["short"]
+            clip.paragraphs = paragraphs_data
+            clip.words = deepgram_object["words"]
+
+            clip.save()
+            print("Database Update")
+
+            # Save Paragraphs in ClipParagraph model
+            extract_paragraphs(paragraphs_data, clip)
+            print("Paragraphs Update")
+
+            # Redirect to results page
+            return redirect(reverse("clips:clip", args=[clip.id]))
+        except Exception as e:
+            return HttpResponse(f"An error occurred: {e}", status=500)
+    else:
+        return render(request, "clips/download_form.html")
 
 
 def delete(request, clip_id):
