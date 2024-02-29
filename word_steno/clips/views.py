@@ -14,6 +14,7 @@ from django.urls import reverse
 from pytube import YouTube
 
 from .embeddings import search_embeddings
+from .models import Chapter
 from .models import Clip
 from .models import ClipParagraph
 from .utils import download_audio
@@ -139,9 +140,6 @@ def clip(request, clip_id, start=0):
             .order_by("speaker")
         )
 
-        desc = get_description(clip.url)
-        chapters = extract_chapters(desc)
-
         clip_paragraphs = [
             {
                 "id": cp.id,
@@ -154,6 +152,20 @@ def clip(request, clip_id, start=0):
             for cp in paragraph_set
         ]
 
+        # Get chapters
+        chapters = Chapter.objects.filter(clip_id=clip_id).order_by("start")
+
+        formatted_summaries = []
+
+        for chapter in chapters:
+            chapter_data = chapter.__dict__.copy()
+            chapter_data.pop("_state", None)
+
+            chapter_data["summary_list"] = (
+                chapter.summary.split("\n") if chapter.summary else []
+            )
+            formatted_summaries.append(chapter_data)
+
         return render(
             request,
             "clips/clip.html",
@@ -163,7 +175,7 @@ def clip(request, clip_id, start=0):
                 "serialized_paragraphs": json.dumps(clip_paragraphs),
                 "speakers": speakers,
                 "start": start,
-                "chapters": chapters,
+                "chapters": formatted_summaries,
             },
         )
     except Clip.DoesNotExist:
@@ -275,7 +287,10 @@ def download(request):
             clip.save()
 
             # Save Paragraphs in ClipParagraph model
-            extract_paragraphs(paragraphs_data, clip)
+            extracted_paragraphs = extract_paragraphs(paragraphs_data, clip)
+
+            # Save Chapters in Chapters model
+            extract_chapters(extracted_paragraphs, clip)
 
             # Redirect to results page
             return redirect(reverse("clips:clip", args=[clip.id]))

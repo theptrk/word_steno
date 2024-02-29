@@ -10,9 +10,13 @@ def humanize_seconds(value):
 
     hours, remainder = divmod(value, 3600)
     minutes, seconds = divmod(remainder, 60)
+
+    hours = int(hours)
+    minutes = int(minutes)
+    seconds = int(seconds)
+
     if hours:
         return f"{hours}:{str(minutes).zfill(2)}:{str(seconds).zfill(2)}"
-    elif minutes:
+    if minutes:
         return f"{minutes}:{str(seconds).zfill(2)}"
-    else:
-        return f"0:{str(seconds).zfill(2)}"
+    return f"0:{str(seconds).zfill(2)}"
