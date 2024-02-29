@@ -153,17 +153,19 @@ def clip(request, clip_id, start=0):
         ]
 
         # Get chapters
-        chapters = Chapter.objects.filter(clip_id=clip_id).order_by("start")
+        chapters = Chapter.objects.filter(clip_id=clip_id).order_by("start").values()
 
+        # Format chapter summaries
         formatted_summaries = []
 
         for chapter in chapters:
-            chapter_data = chapter.__dict__.copy()
-            chapter_data.pop("_state", None)
+            chapter_data = {
+                **chapter,
+                "summary_list": (
+                    chapter["summary"].split("\n") if chapter["summary"] else []
+                ),
+            }
 
-            chapter_data["summary_list"] = (
-                chapter.summary.split("\n") if chapter.summary else []
-            )
             formatted_summaries.append(chapter_data)
 
         return render(

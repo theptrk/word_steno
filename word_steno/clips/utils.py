@@ -71,9 +71,9 @@ def extract_chapters(paragraphs_data, clip):
         return
 
     for i, chapter in enumerate(chapters):
-        next_chapter_start = (
-            clip.length  # Set the next chapter's start time to the end of the video
-        )
+        # Set the next chapter's start time to the end of the video
+        next_chapter_start = clip.length
+
         if i + 1 < len(chapters):
             next_chapter_start = chapters[i + 1]["start"]
 

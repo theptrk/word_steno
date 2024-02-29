@@ -7,15 +7,15 @@ from pgvector.django import VectorField
 # Create your models here.
 class Clip(models.Model):
     url = models.URLField()
-    video_id = models.CharField(max_length=255, blank=True)
-    storage_path = models.CharField(max_length=255, blank=True)
+    video_id = models.CharField(max_length=255, blank=True, default="")
+    storage_path = models.CharField(max_length=255, blank=True, default="")
     length = models.IntegerField(blank=True, null=True)
-    title = models.CharField(max_length=255, blank=True)
-    channel_title = models.CharField(max_length=255, blank=True)
-    description = models.TextField(blank=True)
+    title = models.CharField(max_length=255, blank=True, default="")
+    channel_title = models.CharField(max_length=255, blank=True, default="")
+    description = models.TextField(blank=True, default="")
 
-    full_transcription = models.TextField(blank=True)
-    summary = models.TextField(blank=True)
+    full_transcription = models.TextField(blank=True, default="")
+    summary = models.TextField(blank=True, default="")
     paragraphs = models.JSONField(blank=True, null=True)
     words = models.JSONField(blank=True, null=True)
 
@@ -39,9 +39,9 @@ class ClipParagraph(models.Model):
     clip = models.ForeignKey(Clip, on_delete=models.CASCADE)
     end = models.FloatField(blank=True, null=True)
     start = models.FloatField(blank=True, null=True)
-    speaker = models.CharField(max_length=255, blank=True)
+    speaker = models.CharField(max_length=255, blank=True, default="")
     sentences = models.JSONField(blank=True, null=True)
-    full_transcription = models.TextField(blank=True)
+    full_transcription = models.TextField(blank=True, default="")
     embedding = VectorField(
         dimensions=1024,
         blank=True,
@@ -54,12 +54,12 @@ class ClipParagraph(models.Model):
 
 class Chapter(models.Model):
     clip = models.ForeignKey(Clip, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, blank=True)
+    title = models.CharField(max_length=255, blank=True, default="")
     start = models.FloatField(blank=True, null=True)
     paragraphs = models.JSONField(blank=True, null=True)
-    chapter_transcription = models.TextField(blank=True)
-    prompt = models.TextField(blank=True)
-    summary = models.TextField(blank=True)
+    chapter_transcription = models.TextField(blank=True, default="")
+    prompt = models.TextField(blank=True, default="")
+    summary = models.TextField(blank=True, default="")
 
     def __str__(self):
         return self.title
