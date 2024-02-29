@@ -358,7 +358,7 @@ def embedding(request):
                 "speaker": cp.speaker,
                 "channel_title": cp.clip.channel_title,
                 "video_length": cp.clip.length,
-                "video_transcription": cp.clip.transcription,
+                "video_transcription": cp.clip.full_transcription,
                 "video_summary": cp.clip.summary,
             }
             for cp in clip_paragraphs
