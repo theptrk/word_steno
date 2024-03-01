@@ -46,13 +46,13 @@
     </div>
     <div class="flex flex-row flex-nowrap justify-center items-center m-auto w-full my-4">
       <div id="player" class="bg-gray-200"></div>
-      <div class="bg-gray-200 flex-grow">
+      <div id="transcription-container" class="bg-gray-200 flex-grow">
         <ul class="space-y-1 h-80 overflow-auto">
           {% for paragraph in clip_paragraphs %}
             <li>
               <div id="transcription-{{ paragraph.id }}"
                    class="grid grid-cols-12 gap-1 items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
-                <strong class="rounded border border-indigo-500 bg-indigo-500 px-1 py-1 text-[10px] font-medium text-white w-12 text-center cursor-pointer"
+                <strong class="col-span-9 xl:col-span-1 rounded border border-indigo-500 bg-indigo-500 px-1 py-1 text-[10px] font-medium text-white w-12 text-center cursor-pointer"
                         onclick="seekTo('{{ paragraph.id }}', '{{ paragraph.start }}')">
                   {{ paragraph.start | humanize_seconds }}
                 </strong>
@@ -108,7 +108,7 @@
                     <path d="M20.807,3.17c-0.804-0.805-2.207-0.805-3.012,0l-7.143,7.143c-0.068,0.068-0.117,0.154-0.14,0.247L9.76,13.571  c-0.045,0.181,0.008,0.373,0.14,0.506c0.101,0.101,0.237,0.156,0.376,0.156c0.043,0,0.086-0.005,0.129-0.016l3.012-0.753  c0.094-0.023,0.179-0.072,0.247-0.14l7.143-7.143c0.402-0.402,0.624-0.937,0.624-1.506S21.21,3.572,20.807,3.17z M13.016,12.467  l-2.008,0.502l0.502-2.008l5.909-5.909l1.506,1.506L13.016,12.467z M20.054,5.428l-0.376,0.376l-1.506-1.506l0.376-0.376  c0.402-0.402,1.104-0.402,1.506,0c0.201,0.201,0.312,0.468,0.312,0.753C20.366,4.96,20.255,5.227,20.054,5.428z" />
                   </svg>
                 </label>
-                <p class="col-span-9">{{ paragraph.full_transcription }}</p>
+                <p class="col-span-12 xl:col-span-9">{{ paragraph.full_transcription }}</p>
               </div>
             </li>
           {% endfor %}
@@ -124,9 +124,7 @@
                  onclick="seekTo(null, {{ chapter.start }})">
               <div class="font-medium text-gray-900">{{ chapter.start | humanize_seconds }}</div>
               <div class="text-gray-700">{{ chapter.title }}</div>
-              <div class="text-gray-700 sm:col-span-4">
-                {% for summary in chapter.summary_list %}<p>{{ summary }}</p>{% endfor %}
-              </div>
+              <div class="text-gray-700 sm:col-span-4">{{ chapter.summary_markdown | safe }}</div>
             </div>
           {% endfor %}
         </dl>
@@ -137,17 +135,17 @@
       let updater;
 
       function onYouTubeIframeAPIReady() {
+        var randomParam = (new Date()).getTime();
         player = new YT.Player("player", {
           height: "207",
           width: "368",
-          videoId: "{{clip.video_id}}",
+          videoId: "{{clip.video_id}}" + '?t=' + randomParam,
           playerVars: {
-            start: "{{start}}",
-            autoplay: 1, // This line is optional; it makes the video play automatically.
-            controls: 1, // This line is optional; it shows the playback controls.
+            iv_load_policy: 3
           },
           events: {
             onStateChange: onPlayerStateChange,
+            onReady: onPlayerReady
           },
         });
       }
@@ -161,10 +159,31 @@
         }
       }
 
+      function onPlayerReady(event) {
+        player.loadVideoById({
+          videoId: "{{clip.video_id}}",
+          startSeconds: parseInt("{{start}}")
+        });
+        player.seekTo(parseInt("{{start}}"));
+      }
+
+      function isElementInViewport(el) {
+        const rect = el.getBoundingClientRect();
+        return (
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+      }
+
       function updateTranscriptionHighlight() {
         let currentTime = player.getCurrentTime();
         const clipParagraphs = JSON.parse("{{ serialized_paragraphs|escapejs }}");
         // Loop through your timestamps to find the current segment
+
+        const parentDiv = document.getElementById("transcription-container");
+
         let divToHighlight;
         clipParagraphs.forEach((paragraph) => {
           const div = document.getElementById("transcription-" + paragraph.id);
@@ -179,11 +198,14 @@
         });
 
         divToHighlight.classList.add("bg-yellow-200");
-        divToHighlight.scrollIntoView({
-          behavior: "smooth", // Smooth scroll
-          block: "start", // Aligns to the top edge of the scrollable area
-          inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
-        });
+
+        if (divToHighlight && isElementInViewport(parentDiv)) {
+          divToHighlight.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start",
+          });
+        }
       }
 
       function seekTo(id, seconds) {
@@ -192,7 +214,14 @@
           div.classList.add("bg-yellow-200");
           div.scrollIntoView({
             behavior: "smooth", // Smooth scroll
-            block: "start", // Aligns to the top edge of the scrollable area
+            block: "center", // Aligns to the top edge of the scrollable area
+            inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
+          });
+        } else {
+          const parentDiv = document.getElementById("transcription-container");
+          parentDiv.scrollIntoView({
+            behavior: "smooth", // Smooth scroll
+            block: "center", // Aligns to the top edge of the scrollable area
             inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
           });
         }

@@ -53,11 +53,13 @@ Also make sure that you have this keys in your .env
 
 ```
 DEEPGRAM_API_KEY=
+OPENAI_API_KEY=
 DATABASE_URL=
 DJANGO_AWS_ACCESS_KEY_ID=
 DJANGO_AWS_SECRET_ACCESS_KEY=
 DJANGO_AWS_STORAGE_BUCKET_NAME=
 DJANGO_AWS_S3_REGION_NAME=
+NPM_BIN_PATH=
 ```
 
 ### Start Server
@@ -97,3 +99,16 @@ python manage.py tailwind build
 ```
 
 This will replace the development build with a bundle optimized for production. No further actions are necessary; you can deploy!
+
+## Commands
+
+To use the youtube download command
+
+1. create a text file that will contain the IDs of the videos you want to download
+2. run this command:
+
+```
+py manage.py dlyt [path/to/video_ids.txt]
+```
+
+Sample txt file is at the root of the project named "video_ids.txt"

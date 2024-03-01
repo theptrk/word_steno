@@ -2,6 +2,7 @@ import json
 import logging
 import math
 
+import markdown
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.postgres.search import SearchQuery
 from django.contrib.postgres.search import SearchRank
@@ -161,8 +162,9 @@ def clip(request, clip_id, start=0):
         for chapter in chapters:
             chapter_data = {
                 **chapter,
-                "summary_list": (
-                    chapter["summary"].split("\n") if chapter["summary"] else []
+                "summary_markdown": markdown.markdown(
+                    chapter["summary"],
+                    extensions=["extra", "nl2br", "sane_lists", "smarty"],
                 ),
             }
 
