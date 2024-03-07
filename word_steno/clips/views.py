@@ -2,6 +2,7 @@ import json
 import logging
 import math
 
+import markdown
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.postgres.search import SearchQuery
 from django.contrib.postgres.search import SearchRank
@@ -14,6 +15,7 @@ from django.urls import reverse
 from pytube import YouTube
 
 from .embeddings import search_embeddings
+from .models import Chapter
 from .models import Clip
 from .models import ClipParagraph
 from .utils import download_audio
@@ -139,9 +141,6 @@ def clip(request, clip_id, start=0):
             .order_by("speaker")
         )
 
-        desc = get_description(clip.url)
-        chapters = extract_chapters(desc)
-
         clip_paragraphs = [
             {
                 "id": cp.id,
@@ -154,6 +153,23 @@ def clip(request, clip_id, start=0):
             for cp in paragraph_set
         ]
 
+        # Get chapters
+        chapters = Chapter.objects.filter(clip_id=clip_id).order_by("start").values()
+
+        # Format chapter summaries
+        formatted_summaries = []
+
+        for chapter in chapters:
+            chapter_data = {
+                **chapter,
+                "summary_markdown": markdown.markdown(
+                    chapter["summary"],
+                    extensions=["extra", "nl2br", "sane_lists", "smarty"],
+                ),
+            }
+
+            formatted_summaries.append(chapter_data)
+
         return render(
             request,
             "clips/clip.html",
@@ -163,7 +179,7 @@ def clip(request, clip_id, start=0):
                 "serialized_paragraphs": json.dumps(clip_paragraphs),
                 "speakers": speakers,
                 "start": start,
-                "chapters": chapters,
+                "chapters": formatted_summaries,
             },
         )
     except Clip.DoesNotExist:
@@ -275,7 +291,10 @@ def download(request):
             clip.save()
 
             # Save Paragraphs in ClipParagraph model
-            extract_paragraphs(paragraphs_data, clip)
+            extracted_paragraphs = extract_paragraphs(paragraphs_data, clip)
+
+            # Save Chapters in Chapters model
+            extract_chapters(extracted_paragraphs, clip)
 
             # Redirect to results page
             return redirect(reverse("clips:clip", args=[clip.id]))

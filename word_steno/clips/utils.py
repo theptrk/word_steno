@@ -10,9 +10,13 @@ from deepgram import DeepgramClient
 from deepgram import PrerecordedOptions
 from pytube import YouTube
 
+from .embeddings import generate_summary_with_prompt
+from .models import Chapter
 from .models import ClipParagraph
 
 TWO_HOURS = 2 * 60 * 60
+FORMAT_HOURS = 3
+FORMAT_MINUTES = 2
 
 
 def get_description(video_url) -> str:
@@ -37,31 +41,77 @@ def timestamp_to_seconds(timestamp):
     parts = timestamp.split(":")
     parts = [int(part) for part in parts]
 
-    if len(parts) == 3:
+    if len(parts) == FORMAT_HOURS:
         return parts[0] * 3600 + parts[1] * 60 + parts[2]
-    elif len(parts) == 2:
+    if len(parts) == FORMAT_MINUTES:
         return parts[0] * 60 + parts[1]
-    else:
-        return 0  # Return 0 seconds if the format is unexpected
+    return 0  # Return 0 seconds if the format is unexpected
 
 
-def extract_chapters(description):
+def extract_chapters(paragraphs_data, clip):
     """Extracts chapters and their timestamps (in seconds) from a video description."""
+
+    # Needs to check all "dash" characters (hyphen-minus, en dash, em dash) in but RUF001 doesn't allow it
+    # Error Message: RUF001 String contains ambiguous (EN DASH). Did you mean (HYPHEN-MINUS)?
     chapter_regex = re.compile(
-        r"(?:\((\d{1,2}:\d{2}(?::\d{2})?)\)|(\d{1,2}:\d{2}(?::\d{2})?))\s*[-–—)]?\s*(.*)",
+        r"(?:\((\d{1,2}:\d{2}(?::\d{2})?)\)|(\d{1,2}:\d{2}(?::\d{2})?))\s*[-–—)]?\s*(.*)",  # noqa: RUF001
     )
 
     chapters = []
-    for line in description.split("\n"):
+    for line in clip.description.split("\n"):
         match = chapter_regex.match(line.strip())
         if match:
             # Choose the first matching group if it captured the timestamp, otherwise use the second
             timestamp_str = match.group(1) if match.group(1) else match.group(2)
             timestamp_seconds = timestamp_to_seconds(timestamp_str)
             title = match.group(3)
-            chapters.append({"timestamp": timestamp_seconds, "title": title})
+            chapters.append({"start": timestamp_seconds, "title": title})
 
-    return chapters
+    if len(chapters) == 0:
+        return
+
+    for i, chapter in enumerate(chapters):
+        # Set the next chapter's start time to the end of the video
+        next_chapter_start = clip.length
+
+        if i + 1 < len(chapters):
+            next_chapter_start = chapters[i + 1]["start"]
+
+        # Filter paragraphs that fall into the current chapter's time range
+        chapter_paragraphs = [
+            p
+            for p in paragraphs_data
+            if chapter["start"] <= p["start"] < next_chapter_start
+        ]
+
+        # Generate aggregated text for the chapter
+        chapter_transcription = "\n\n".join(
+            [
+                f"Speaker: {p['speaker']}\n{p['full_transcription']}"
+                for p in chapter_paragraphs
+            ],
+        )
+
+        # Generate Speakers
+        unique_speakers = {p["speaker"] for p in chapter_paragraphs}
+        speakers = ", ".join([f"'{speaker}'" for speaker in unique_speakers])
+
+        # Generate Summary for the chapter
+        summarizer = generate_summary_with_prompt(
+            chapter_transcription,
+            speakers,
+            chapter["title"],
+        )
+
+        Chapter.objects.create(
+            clip=clip,
+            title=chapter["title"],
+            start=chapter["start"],
+            paragraphs=chapter_paragraphs,
+            chapter_transcription=chapter_transcription,
+            prompt=summarizer["prompt"],
+            summary=summarizer["summary"],
+        )
 
 
 def download_audio(yt):
@@ -126,10 +176,9 @@ def transcribe_audio(file_path):
             timeout=300,
         )
 
-        # Since the SDK is asynchronous, make sure to await the response if you're using async views
-        # response = await dg_client.transcription.prerecorded(audio_data, options)
-    except Exception as e:
-        return print(f"An error occurred during transcription: {e}")
+    except Exception:
+        logging.exception("Error: occured while transcribing an audio.")
+        return None
 
 
 def create_presigned_url(bucket_name, object_name, expiration=3600):
@@ -154,8 +203,7 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
             ExpiresIn=expiration,
         )
     except ClientError as e:
-        logging.exception(e)
-        return None
+        return e
 
     # The response contains the presigned URL
     return response
@@ -163,14 +211,25 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
 
 def extract_paragraphs(paragraphs_data, clip):
     if paragraphs_data:
+        outputparagraphs = []
         for paragraph in paragraphs_data:
             # Create Full Transcription for the paragraph
             full_transcription = ""
             sentences = paragraph.get("sentences")
             if sentences:
                 for sentence in sentences:
-                    print(sentence.get("text"), sentence)
                     full_transcription += sentence.get("text") + " "
+
+            outputparagraphs.append(
+                {
+                    "clip": clip.id,
+                    "end": paragraph.get("end"),
+                    "start": paragraph.get("start"),
+                    "speaker": paragraph.get("speaker"),
+                    "sentences": paragraph.get("sentences"),
+                    "full_transcription": full_transcription,
+                },
+            )
 
             ClipParagraph.objects.create(
                 clip=clip,
@@ -180,6 +239,7 @@ def extract_paragraphs(paragraphs_data, clip):
                 sentences=paragraph.get("sentences"),
                 full_transcription=full_transcription,
             )
+    return outputparagraphs
 
 
 def extract_youtube_video_id(url):
