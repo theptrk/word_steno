@@ -57,7 +57,7 @@
               </p>
               {% for full_transcription in paragraph.full_transcription %}
                 <p class="mt-2 text-sm text-gray-700">
-                  <a href="{% url 'clips:clip_with_start' paragraph.clip_id full_transcription.start %}">
+                  <a href="{% url 'clips:clip_with_start' paragraph.clip_id search_term full_transcription.start %}">
                     <label class="mr-1 font-bold cursor-pointer hover:underline">
                       Related paragraph on time
                       {{ full_transcription.start|humanize_seconds }} to
@@ -74,8 +74,7 @@
                        stroke="currentColor"
                        viewBox="0 0 24 24"
                        xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <p class="text-xs font-medium">{{ paragraph.video_length|humanize_seconds }}</p>
                 </div>
@@ -88,4 +87,4 @@
       <p class="max-w-[1200px] mx-auto">No results found. Please search again.</p>
     {% endif %}
   {% endif %}
-{% endblock %}
+{% endblock content %}

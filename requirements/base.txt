@@ -23,3 +23,5 @@ yt_dlp==2023.12.30 # https://github.com/yt-dlp/yt-dlp
 
 openai==1.12.0 # https://pypi.org/project/openai/
 markdown==3.5.2 # https://python-markdown.github.io/
+
+google-api-python-client==2.120.0 # https://pypi.org/project/google-api-python-client/

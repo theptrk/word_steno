@@ -54,6 +54,7 @@ Also make sure that you have this keys in your .env
 ```
 DEEPGRAM_API_KEY=
 OPENAI_API_KEY=
+GOOGLE_API_KEY=
 DATABASE_URL=
 DJANGO_AWS_ACCESS_KEY_ID=
 DJANGO_AWS_SECRET_ACCESS_KEY=
@@ -61,6 +62,8 @@ DJANGO_AWS_STORAGE_BUCKET_NAME=
 DJANGO_AWS_S3_REGION_NAME=
 NPM_BIN_PATH=
 ```
+
+To get a google api key you can follow this [youtube data api documentation](https://developers.google.com/youtube/v3/quickstart/python)
 
 ### Start Server
 
@@ -108,7 +111,7 @@ To use the youtube download command
 2. run this command:
 
 ```
-py manage.py dlyt [path/to/video_ids.txt]
+py manage.py dlyt path/to/video_ids.txt
 ```
 
 Sample txt file is at the root of the project named "video_ids.txt"

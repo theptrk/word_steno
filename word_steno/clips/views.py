@@ -9,6 +9,7 @@ from django.contrib.postgres.search import SearchRank
 from django.contrib.postgres.search import SearchVector
 from django.db.models import F
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -114,7 +115,7 @@ def index(request):
     )
 
 
-def clip(request, clip_id, start=0):
+def clip(request, clip_id, start=0, phrase=""):
     try:
         if request.method == "POST":
             # Extract the updated speaker information from the POST data
@@ -180,6 +181,7 @@ def clip(request, clip_id, start=0):
                 "speakers": speakers,
                 "start": start,
                 "chapters": formatted_summaries,
+                "phrase": phrase,
             },
         )
     except Clip.DoesNotExist:
@@ -187,21 +189,26 @@ def clip(request, clip_id, start=0):
 
 
 def update_speaker(request, clip_id):
-    # Extract the updated speaker information from the POST data
     paragraph_id = request.POST.get("paragraph_id")
-    updated_speaker = request.POST.get("new_speaker")
+    new_speaker = request.POST.get("new_speaker")
 
-    # Update ClipParagraph instances
-    if updated_speaker is not None:
+    if new_speaker:
+        # Update the speaker name
         ClipParagraph.objects.filter(clip_id=clip_id, id=paragraph_id).update(
-            speaker=updated_speaker,
-        )
-        # Redirect to a new URL to prevent form resubmission
-        return redirect(
-            reverse("clips:clip", args=[clip_id]),
+            speaker=new_speaker,
         )
 
-    return HttpResponse("No speaker name provided.", status=400)
+        # Return an HTML snippet with the updated speaker's name
+        # Assuming you have a template snippet named 'partials/speaker_name.html'
+        return render(
+            request,
+            "clips/partials/speaker_name.html",
+            {"speaker": new_speaker, "id": paragraph_id},
+        )
+    return JsonResponse(
+        {"status": "error", "message": "No speaker name provided."},
+        status=400,
+    )
 
 
 def channels(request):

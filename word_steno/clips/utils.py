@@ -220,12 +220,17 @@ def extract_paragraphs(paragraphs_data, clip):
                 for sentence in sentences:
                     full_transcription += sentence.get("text") + " "
 
+            speaker = paragraph.get("speaker", -1)
+            speaker_label = (
+                "Unknown Speaker" if speaker < 0 else f"Speaker {int(speaker) + 1}"
+            )
+
             outputparagraphs.append(
                 {
                     "clip": clip.id,
                     "end": paragraph.get("end"),
                     "start": paragraph.get("start"),
-                    "speaker": paragraph.get("speaker"),
+                    "speaker": speaker_label,
                     "sentences": paragraph.get("sentences"),
                     "full_transcription": full_transcription,
                 },
@@ -235,7 +240,7 @@ def extract_paragraphs(paragraphs_data, clip):
                 clip=clip,
                 end=paragraph.get("end"),
                 start=paragraph.get("start"),
-                speaker=paragraph.get("speaker"),
+                speaker=speaker_label,
                 sentences=paragraph.get("sentences"),
                 full_transcription=full_transcription,
             )
