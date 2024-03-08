@@ -1,321 +1,233 @@
-{% extends 'base.html' %}
+<div id="main-clip-container">
+  {% extends 'base.html' %}
 
-{% block content %}
-  {% if clip %}
-    {% load video_filters %}
+  {% block content %}
+    {% if clip %}
+      {% load video_filters %}
 
-    <div class="flex justify-between relative">
-      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">{{ clip.title }}</h1>
-      <div class="flex">
-        <input type="checkbox" id="drawer-toggle" class="relative sr-only peer" />
-        <label for="drawer-toggle"
-               class="absolute top-0 right-0 inline-block p-2 transition-all duration-500 bg-indigo-600 hover:bg-indigo-700 rounded-full peer-checked:rotate-180 peer-checked:right-52">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               fill="white"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24">
-            <path d="M24 13.616v-3.232c-1.651-.587-2.694-.752-3.219-2.019v-.001c-.527-1.271.1-2.134.847-3.707l-2.285-2.285c-1.561.742-2.433 1.375-3.707.847h-.001c-1.269-.526-1.435-1.576-2.019-3.219h-3.232c-.582 1.635-.749 2.692-2.019 3.219h-.001c-1.271.528-2.132-.098-3.707-.847l-2.285 2.285c.745 1.568 1.375 2.434.847 3.707-.527 1.271-1.584 1.438-3.219 2.02v3.232c1.632.58 2.692.749 3.219 2.019.53 1.282-.114 2.166-.847 3.707l2.285 2.286c1.562-.743 2.434-1.375 3.707-.847h.001c1.27.526 1.436 1.579 2.019 3.219h3.232c.582-1.636.75-2.69 2.027-3.222h.001c1.262-.524 2.12.101 3.698.851l2.285-2.286c-.744-1.563-1.375-2.433-.848-3.706.527-1.271 1.588-1.44 3.221-2.021zm-12 2.384c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4z" />
-          </svg>
-        </label>
-        <div class="fixed top-0 right-0 z-20 w-64 h-full transition-all duration-500 transform translate-x-full bg-white shadow-lg peer-checked:translate-x-0">
-          <div class="px-6 py-4">
-            <h2 class="block text-xl font-medium text-gray-900">Speakers</h2>
-            <form action="{% url 'clips:clip' clip.id %}" method="post">
-              {% csrf_token %}
-              <label for="speakers" class="block text-sm font-medium text-gray-900 mt-2">Speakers</label>
-              <select name="speakers"
-                      id="speakers"
-                      class="mb-1 w-full rounded-lg border-gray-300 text-gray-700 sm:text-sm">
-                {% for speaker in speakers %}<option value="{{ speaker }}">{{ speaker }}</option>{% endfor %}
-              </select>
-              <label for="new_speaker"
-                     class="block text-sm font-medium text-gray-900 mt-2">Speaker Update</label>
-              <input type="text"
-                     id="new_speaker"
-                     name="new_speaker"
-                     class="mb-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm p-2" />
-              <button type="submit"
-                      class="my-2 px-2 py-1 w-full text-base font-medium text-center text-white transition duration-500 ease-in-out transform bg-indigo-600 lg:px-10 rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Update
-              </button>
-            </form>
+      <div class="flex justify-between relative">
+        <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">{{ clip.title }}</h1>
+        <div class="flex">
+          <input type="checkbox" id="drawer-toggle" class="relative sr-only peer" />
+          <label for="drawer-toggle"
+                 class="absolute top-0 right-0 inline-block p-2 transition-all duration-500 bg-indigo-600 hover:bg-indigo-700 rounded-full peer-checked:rotate-180 peer-checked:right-52">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 fill="white"
+                 width="24"
+                 height="24"
+                 viewBox="0 0 24 24">
+              <path d="M24 13.616v-3.232c-1.651-.587-2.694-.752-3.219-2.019v-.001c-.527-1.271.1-2.134.847-3.707l-2.285-2.285c-1.561.742-2.433 1.375-3.707.847h-.001c-1.269-.526-1.435-1.576-2.019-3.219h-3.232c-.582 1.635-.749 2.692-2.019 3.219h-.001c-1.271.528-2.132-.098-3.707-.847l-2.285 2.285c.745 1.568 1.375 2.434.847 3.707-.527 1.271-1.584 1.438-3.219 2.02v3.232c1.632.58 2.692.749 3.219 2.019.53 1.282-.114 2.166-.847 3.707l2.285 2.286c1.562-.743 2.434-1.375 3.707-.847h.001c1.27.526 1.436 1.579 2.019 3.219h3.232c.582-1.636.75-2.69 2.027-3.222h.001c1.262-.524 2.12.101 3.698.851l2.285-2.286c-.744-1.563-1.375-2.433-.848-3.706.527-1.271 1.588-1.44 3.221-2.021zm-12 2.384c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4z" />
+            </svg>
+          </label>
+          <div class="fixed top-0 right-0 z-20 w-64 h-full transition-all duration-500 transform translate-x-full bg-white shadow-lg peer-checked:translate-x-0">
+            <div class="px-6 py-4">
+              <h2 class="block text-xl font-medium text-gray-900">Speakers</h2>
+              <form hx-post="{% url 'clips:clip' clip.id %}"
+                    hx-swap="outerHTML"
+                    hx-target="#main-clip-container">
+                {% csrf_token %}
+                <label for="speakers" class="block text-sm font-medium text-gray-900 mt-2">Speakers</label>
+                <select name="speakers"
+                        id="speakers"
+                        class="mb-1 w-full rounded-lg border-gray-300 text-gray-700 sm:text-sm">
+                  {% for speaker in speakers %}<option value="{{ speaker }}">{{ speaker }}</option>{% endfor %}
+                </select>
+                <label for="new_speaker"
+                       class="block text-sm font-medium text-gray-900 mt-2">Speaker Update</label>
+                <input type="text"
+                       id="new_speaker"
+                       name="new_speaker"
+                       class="mb-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm p-2" />
+                <button type="submit"
+                        class="my-2 px-2 py-1 w-full text-base font-medium text-center text-white transition duration-500 ease-in-out transform bg-indigo-600 lg:px-10 rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  Update
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="flex flex-row flex-nowrap justify-center items-center m-auto w-full my-4">
-      <iframe id="player"
-              class="bg-gray-200"
-              width="368"
-              height="207"
-              src="https://www.youtube-nocookie.com/embed/{{ clip.video_id }}?enablejsapi=1&start={{ start }}&autoplay=1&mute=1&rel=0"
-              frameborder="0"
-              allow="autoplay; encrypted-media"
-              allowfullscreen></iframe>
-      <div id="transcription-container" class="bg-gray-200 flex-grow">
-        <ul class="space-y-1 h-80 overflow-auto">
-          {% for paragraph in clip_paragraphs %}
-            <li>
-              <div id="transcription-{{ paragraph.id }}"
-                   class="grid grid-cols-12 gap-1 items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
-                <strong class="col-span-9 xl:col-span-1 rounded border border-indigo-500 bg-indigo-500 px-1 py-1 text-[10px] font-medium text-white w-12 text-center cursor-pointer"
-                        onclick="seekTo('{{ paragraph.id }}', '{{ paragraph.start }}')">
-                  {{ paragraph.start | humanize_seconds }}
-                </strong>
-                <label class="col-span-2 xl:col-span-3 2xl:col-span-2 font-bold w-40 flex items-center justify-between">
-                  <div class="relative">
-                    <!-- Existing speaker display using snippet -->
-                    {% include "clips/partials/speaker_name.html" with speaker=paragraph.speaker id=paragraph.id %}
-                    <!-- Hidden form for editing speaker name -->
-                    <form id="edit-speaker-form-{{ paragraph.id }}"
-                          style="display: none"
-                          hx-post="{% url 'clips:update_speaker' clip.id %}"
-                          hx-swap="outerHTML"
-                          hx-target="#speaker-name-{{ paragraph.id }}">
-                      {% csrf_token %}
-                      <input type="text"
-                             id="new_speaker"
-                             class="w-full rounded-md border-gray-200 p-2.5 pe-10 shadow-sm sm:text-sm"
-                             name="new_speaker"
-                             value="{{ paragraph.speaker }}" />
-                      <input type="hidden"
-                             id="paragraph_id"
-                             name="paragraph_id"
-                             value="{{ paragraph.id }}" />
-                      <span class="absolute inset-y-0 end-0 grid w-10 place-content-center">
-                        <button type="submit" class="text-gray-600 hover:text-gray-700">
-                          <span class="sr-only">Search</span>
-                          <svg version="1.1"
-                               viewBox="0 0 24 24"
-                               width="16"
-                               height="16"
-                               class="h-4 w-4"
-                               xml:space="preserve"
-                               xmlns="http://www.w3.org/2000/svg"
-                               xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <path d="M19.607,18.746c0,0.881-0.716,1.624-1.597,1.624H5.231c-0.881,0-1.597-0.743-1.597-1.624V5.967  c0-0.881,0.716-1.571,1.597-1.571h7.454V3.332H5.231c-1.468,0-2.662,1.168-2.662,2.636v12.778c0,1.468,1.194,2.688,2.662,2.688  h12.778c1.468,0,2.662-1.221,2.662-2.688v-7.428h-1.065V18.746z" />
-                            <path d="M20.807,3.17c-0.804-0.805-2.207-0.805-3.012,0l-7.143,7.143c-0.068,0.068-0.117,0.154-0.14,0.247L9.76,13.571  c-0.045,0.181,0.008,0.373,0.14,0.506c0.101,0.101,0.237,0.156,0.376,0.156c0.043,0,0.086-0.005,0.129-0.016l3.012-0.753  c0.094-0.023,0.179-0.072,0.247-0.14l7.143-7.143c0.402-0.402,0.624-0.937,0.624-1.506S21.21,3.572,20.807,3.17z M13.016,12.467  l-2.008,0.502l0.502-2.008l5.909-5.909l1.506,1.506L13.016,12.467z M20.054,5.428l-0.376,0.376l-1.506-1.506l0.376-0.376  c0.402-0.402,1.104-0.402,1.506,0c0.201,0.201,0.312,0.468,0.312,0.753C20.366,4.96,20.255,5.227,20.054,5.428z" />
-                          </svg>
-                        </button>
-                      </span>
-                    </form>
-                  </div>
-                  <svg class="mr-1 cursor-pointer"
-                       id="edit-speaker-icon-{{ paragraph.id }}"
-                       version="1.1"
-                       viewBox="0 0 24 24"
-                       width="16"
-                       height="16"
-                       xml:space="preserve"
-                       xmlns="http://www.w3.org/2000/svg"
-                       xmlns:xlink="http://www.w3.org/1999/xlink"
-                       onclick="toggleEditForm('{{ paragraph.id }}')">
-                    <path d="M19.607,18.746c0,0.881-0.716,1.624-1.597,1.624H5.231c-0.881,0-1.597-0.743-1.597-1.624V5.967  c0-0.881,0.716-1.571,1.597-1.571h7.454V3.332H5.231c-1.468,0-2.662,1.168-2.662,2.636v12.778c0,1.468,1.194,2.688,2.662,2.688  h12.778c1.468,0,2.662-1.221,2.662-2.688v-7.428h-1.065V18.746z" />
-                    <path d="M20.807,3.17c-0.804-0.805-2.207-0.805-3.012,0l-7.143,7.143c-0.068,0.068-0.117,0.154-0.14,0.247L9.76,13.571  c-0.045,0.181,0.008,0.373,0.14,0.506c0.101,0.101,0.237,0.156,0.376,0.156c0.043,0,0.086-0.005,0.129-0.016l3.012-0.753  c0.094-0.023,0.179-0.072,0.247-0.14l7.143-7.143c0.402-0.402,0.624-0.937,0.624-1.506S21.21,3.572,20.807,3.17z M13.016,12.467  l-2.008,0.502l0.502-2.008l5.909-5.909l1.506,1.506L13.016,12.467z M20.054,5.428l-0.376,0.376l-1.506-1.506l0.376-0.376  c0.402-0.402,1.104-0.402,1.506,0c0.201,0.201,0.312,0.468,0.312,0.753C20.366,4.96,20.255,5.227,20.054,5.428z" />
-                  </svg>
-                </label>
-                <p class="col-span-12 xl:col-span-8 2xl:col-span-9">{{ paragraph.full_transcription }}</p>
+      <div class="flex flex-row flex-nowrap justify-center items-center m-auto w-full my-4">
+        <iframe id="player"
+                class="bg-gray-200"
+                width="368"
+                height="207"
+                src="https://www.youtube-nocookie.com/embed/{{ clip.video_id }}?enablejsapi=1&start={{ start }}&autoplay=1&mute=1&rel=0"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                allowfullscreen></iframe>
+        <div id="transcription-container" class="bg-gray-200 flex-grow">
+          <ul class="space-y-1 h-80 overflow-auto">
+            {% for paragraph in clip_paragraphs %}
+              <li>
+                <div id="transcription-{{ paragraph.id }}"
+                     class="grid grid-cols-12 gap-1 items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
+                  <strong class="col-span-9 xl:col-span-1 rounded border border-indigo-500 bg-indigo-500 px-1 py-1 text-[10px] font-medium text-white w-12 text-center cursor-pointer"
+                          onclick="seekTo('{{ paragraph.id }}', '{{ paragraph.start }}')">
+                    {{ paragraph.start | humanize_seconds }}
+                  </strong>
+                  <label class="col-span-2 xl:col-span-3 2xl:col-span-2 font-bold w-40 flex items-center justify-between">
+                    {% include "clips/partials/speaker_name.html" with speaker=paragraph.speaker id=paragraph.id clipId=clip.id %}
+                  </label>
+                  <p class="col-span-12 xl:col-span-8 2xl:col-span-9">{{ paragraph.full_transcription }}</p>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% if chapters %}
+        <h2 class="text-xl font-bold">Chapters</h2>
+        <div class="flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
+          <dl class="-my-3 divide-y divide-gray-100 text-sm">
+            {% for chapter in chapters %}
+              <div class="grid grid-cols-1 gap-1 p-3 sm:grid-cols-6 sm:gap-4 cursor-pointer hover:bg-gray-200"
+                   onclick="seekTo(null, {{ chapter.start }})">
+                <div class="font-medium text-gray-900">{{ chapter.start | humanize_seconds }}</div>
+                <div class="text-gray-700">{{ chapter.title }}</div>
+                <div class="text-gray-700 sm:col-span-4">{{ chapter.summary_markdown | safe }}</div>
               </div>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-    {% if chapters %}
-      <h2 class="text-xl font-bold">Chapters</h2>
-      <div class="flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
-        <dl class="-my-3 divide-y divide-gray-100 text-sm">
-          {% for chapter in chapters %}
-            <div class="grid grid-cols-1 gap-1 p-3 sm:grid-cols-6 sm:gap-4 cursor-pointer hover:bg-gray-200"
-                 onclick="seekTo(null, {{ chapter.start }})">
-              <div class="font-medium text-gray-900">{{ chapter.start | humanize_seconds }}</div>
-              <div class="text-gray-700">{{ chapter.title }}</div>
-              <div class="text-gray-700 sm:col-span-4">{{ chapter.summary_markdown | safe }}</div>
-            </div>
-          {% endfor %}
-        </dl>
-      </div>
-    {% endif %}
-    <script>
-      let player;
-      let updater;
-      let currentHighlighted;
+            {% endfor %}
+          </dl>
+        </div>
+      {% endif %}
+      <script>
+        let player;
+        let updater;
+        let currentHighlighted;
 
-      function onYouTubeIframeAPIReady() {
-        var randomParam = (new Date()).getTime();
-        player = new YT.Player("player", {
-          events: {
-            onStateChange: onPlayerStateChange,
-            onReady: onPlayerReady
-          },
-        });
-      }
-
-      function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
-          // Video is playing, now you can highlight the transcription
-          updater = setInterval(updateTranscriptionHighlight, 500);
-        } else {
-          clearInterval(updater);
-        }
-      }
-
-      function onPlayerReady(event) {
-        highlightPhrase('{{ phrase|escapejs }}');
-        updater = setInterval(updateTranscriptionHighlight, 500);
-      }
-
-      function highlightPhrase(phrase) {
-        if (!phrase) return;
-
-        const regex = new RegExp(phrase, 'gi'); // Case insensitive search
-        const transcriptionElements = document.querySelectorAll('#transcription-container p');
-
-        transcriptionElements.forEach(element => {
-          element.innerHTML = element.innerHTML.replace(regex, match => `<span class="px-0.5 bg-orange-400">${match}</span>`);
-        });
-      }
-
-      function isElementInViewport(el) {
-        const rect = el.getBoundingClientRect();
-        return (
-          rect.top >= 0 &&
-          rect.left >= 0 &&
-          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
-      }
-
-      function updateTranscriptionHighlight() {
-        let currentTime = player.getCurrentTime();
-        const clipParagraphs = JSON.parse("{{ serialized_paragraphs|escapejs }}");
-        // Loop through your timestamps to find the current segment
-
-        const parentDiv = document.getElementById("transcription-container");
-
-        let divToHighlight;
-        clipParagraphs.forEach((paragraph) => {
-          const div = document.getElementById("transcription-" + paragraph.id);
-
-          if (div) {
-            // Check if the div exists to avoid null errors
-            if (currentTime >= paragraph.start && currentTime <= paragraph.end) {
-              divToHighlight = div;
-            }
-            div.classList.remove("bg-yellow-200");
-          }
-        });
-
-        divToHighlight.classList.add("bg-yellow-200");
-
-        if (divToHighlight && isElementInViewport(parentDiv) && (divToHighlight !== currentHighlighted || !currentHighlighted)) {
-          divToHighlight.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "start",
-          });
-          currentHighlighted = divToHighlight;
-        }
-      }
-
-      function seekTo(id, seconds) {
-        if (id) {
-          const div = document.getElementById("transcription-" + id);
-          div.classList.add("bg-yellow-200");
-          div.scrollIntoView({
-            behavior: "smooth", // Smooth scroll
-            block: "center", // Aligns to the top edge of the scrollable area
-            inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
-          });
-        } else {
-          const parentDiv = document.getElementById("transcription-container");
-          parentDiv.scrollIntoView({
-            behavior: "smooth", // Smooth scroll
-            block: "center", // Aligns to the top edge of the scrollable area
-            inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
-          });
-        }
-
-        player.seekTo(seconds, true);
-      }
-
-      function toggleEditForm(paragraphId) {
-        const form = document.getElementById(`edit-speaker-form-${paragraphId}`);
-        const speakerNameElement = document.getElementById(`speaker-name-${paragraphId}`);
-        const icon = document.getElementById(`edit-speaker-icon-${paragraphId}`);
-
-        if (form.style.display === "none") {
-          form.style.display = "block";
-          icon.style.display = "none";
-          speakerNameElement.style.display = "none";
-
-          // Focus on the input field when showing the form
-          const input = form.querySelector('input[name="new_speaker"]');
-          input.focus();
-
-          // Set up blur event listener
-          input.onblur = function(event) {
-            // Check if the new focused element is within the form or not
-            setTimeout(() => { // Timeout to allow for checking the document.activeElement
-              if (!form.contains(document.activeElement)) {
-                form.style.display = "none";
-                icon.style.display = "block";
-                speakerNameElement.style.display = "block";
-              }
-            }, 0); // Timeout ensures we check after the focus has actually moved
-          };
-        } else {
-          form.style.display = "none";
-          icon.style.display = "block";
-          speakerNameElement.style.display = "block";
-        }
-      }
-
-      function updateSpeaker(event, paragraphId) {
-        event.preventDefault(); // Prevent the form from submitting in the traditional way
-
-        const formData = new FormData(document.getElementById(`edit-speaker-form-${paragraphId}`));
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Get CSRF token from form
-
-        fetch(`{% url 'clips:update_speaker' clip.id %}`, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': csrftoken,
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
+        function onYouTubeIframeAPIReady() {
+          var randomParam = (new Date()).getTime();
+          player = new YT.Player("player", {
+            events: {
+              onStateChange: onPlayerStateChange,
+              onReady: onPlayerReady
             },
-            body: JSON.stringify({
-              paragraph_id: formData.get('paragraph_id'),
-              new_speaker: formData.get('new_speaker'),
-            })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === 'success') {
-              // Update the UI to reflect the new speaker name
-              document.getElementById(`speaker-name-${paragraphId}`).textContent = data.updated_speaker;
-              // Hide the form
-              toggleEditForm(paragraphId);
-            } else {
-              // Handle errors (e.g., show a message to the user)
-              console.error(data.message);
-            }
-          })
-          .catch(error => console.error('Error:', error));
-      }
-
-      document.body.addEventListener('htmx:afterSwap', function(event) {
-        // Check if the swap was for an speaker-name submission
-        if (event.detail.target.id.startsWith('speaker-name-')) {
-          // Extract the paragraphId from the element ID
-          const paragraphId = event.detail.target.id.replace('speaker-name-', '');
-          toggleEditForm(paragraphId);
+          });
         }
-      });
-    </script>
-  {% else %}
-    <p>There's no clip here.</p>
-  {% endif %}
-{% endblock content %}
+
+        function onPlayerStateChange(event) {
+          if (event.data == YT.PlayerState.PLAYING) {
+            // Video is playing, now you can highlight the transcription
+            updater = setInterval(updateTranscriptionHighlight, 500);
+          } else {
+            clearInterval(updater);
+          }
+        }
+
+        function onPlayerReady(event) {
+          highlightPhrase('{{ phrase|escapejs }}');
+          updater = setInterval(updateTranscriptionHighlight, 500);
+        }
+
+        function highlightPhrase(phrase) {
+          if (!phrase) return;
+
+          const regex = new RegExp(phrase, 'gi'); // Case insensitive search
+          const transcriptionElements = document.querySelectorAll('#transcription-container p');
+
+          transcriptionElements.forEach(element => {
+            element.innerHTML = element.innerHTML.replace(regex, match => `<span class="px-0.5 bg-orange-400">${match}</span>`);
+          });
+        }
+
+        function isElementInViewport(el) {
+          const rect = el.getBoundingClientRect();
+          return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+          );
+        }
+
+        function updateTranscriptionHighlight() {
+          let currentTime = player.getCurrentTime();
+          const clipParagraphs = JSON.parse("{{ serialized_paragraphs|escapejs }}");
+          // Loop through your timestamps to find the current segment
+
+          const parentDiv = document.getElementById("transcription-container");
+
+          let divToHighlight;
+          clipParagraphs.forEach((paragraph) => {
+            const div = document.getElementById("transcription-" + paragraph.id);
+
+            if (div) {
+              // Check if the div exists to avoid null errors
+              if (currentTime >= paragraph.start && currentTime <= paragraph.end) {
+                divToHighlight = div;
+              }
+              div.classList.remove("bg-yellow-200");
+            }
+          });
+
+          divToHighlight.classList.add("bg-yellow-200");
+
+          if (divToHighlight && isElementInViewport(parentDiv) && (divToHighlight !== currentHighlighted || !currentHighlighted)) {
+            divToHighlight.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+              inline: "start",
+            });
+            currentHighlighted = divToHighlight;
+          }
+        }
+
+        function seekTo(id, seconds) {
+          if (id) {
+            const div = document.getElementById("transcription-" + id);
+            div.classList.add("bg-yellow-200");
+            div.scrollIntoView({
+              behavior: "smooth", // Smooth scroll
+              block: "center", // Aligns to the top edge of the scrollable area
+              inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
+            });
+          } else {
+            const parentDiv = document.getElementById("transcription-container");
+            parentDiv.scrollIntoView({
+              behavior: "smooth", // Smooth scroll
+              block: "center", // Aligns to the top edge of the scrollable area
+              inline: "start", // Horizontal scrolling, aligns to the start edge of the viewport
+            });
+          }
+
+          player.seekTo(seconds, true);
+        }
+
+        function toggleEditForm(paragraphId) {
+          const form = document.getElementById(`edit-speaker-form-${paragraphId}`);
+          const speakerNameElement = document.getElementById(`speaker-name-${paragraphId}`);
+          const icon = document.getElementById(`edit-speaker-icon-${paragraphId}`);
+
+          if (form.style.display === "none") {
+            form.style.display = "block";
+            icon.style.display = "none";
+            speakerNameElement.style.display = "none";
+
+            // Focus on the input field when showing the form
+            const input = form.querySelector('input[name="new_speaker"]');
+            input.focus();
+
+            // Set up blur event listener
+            input.onblur = function(event) {
+              // Check if the new focused element is within the form or not
+              setTimeout(() => { // Timeout to allow for checking the document.activeElement
+                if (!form.contains(document.activeElement)) {
+                  form.style.display = "none";
+                  icon.style.display = "block";
+                  speakerNameElement.style.display = "block";
+                }
+              }, 0); // Timeout ensures we check after the focus has actually moved
+            };
+          } else {
+            form.style.display = "none";
+            icon.style.display = "block";
+            speakerNameElement.style.display = "block";
+          }
+        }
+      </script>
+    {% else %}
+      <p>There's no clip here.</p>
+    {% endif %}
+  {% endblock content %}
+</div>

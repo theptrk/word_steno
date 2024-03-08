@@ -203,7 +203,7 @@ def update_speaker(request, clip_id):
         return render(
             request,
             "clips/partials/speaker_name.html",
-            {"speaker": new_speaker, "id": paragraph_id},
+            {"speaker": new_speaker, "id": paragraph_id, "clipId": clip_id},
         )
     return JsonResponse(
         {"status": "error", "message": "No speaker name provided."},
